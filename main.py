@@ -1,16 +1,30 @@
-# This is a sample Python script.
+# app.py
+from flask import Flask, jsonify
+from mongoengine import Document, StringField, connect
+from user_routes import user_bp  #
 
-# Press ⌃R to execute it or replace it with your code.
-# Press Double ⇧ to search everywhere for classes, files, tool windows, actions, and settings.
+app = Flask(__name__)
+
+connect(
+    db='pathFinder',
+    host='mongodb+srv://db1:VIotwHFXr3WA1JiT@cluster0.ohmao.mongodb.net/',
+    tls=True,
+    tlsAllowInvalidCertificates=True
+)
+
+app.register_blueprint(user_bp, url_prefix='/api')
 
 
-def print_hi(name):
-    # Use a breakpoint in the code line below to debug your script.
-    print(f'Hi, {name}')  # Press ⌘F8 to toggle the breakpoint.
+@app.route('/', methods=['GET'])
+def home():
+    return "Welcome to the Flask API!"
 
 
-# Press the green button in the gutter to run the script.
+# Define a simple API endpoint
+@app.route('/api/hello', methods=['GET'])
+def hello_world():
+    return jsonify({"message": "Hello, World!"})
+
+
 if __name__ == '__main__':
-    print_hi('PyCharm')
-
-# See PyCharm help at https://www.jetbrains.com/help/pycharm/
+    app.run(debug=True, port=8080)
