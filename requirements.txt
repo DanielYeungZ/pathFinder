@@ -29,3 +29,6 @@ urllib3==1.26.20
 Werkzeug==2.2.3
 zipp==3.21.0
 roboflow==1.1.53
+numpy==2.2.3
+opencv-python-headless==4.10.0.84
+networkx==3.4.2

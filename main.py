@@ -2,6 +2,7 @@
 from flask import Flask, jsonify
 from mongoengine import connect
 from routes import user_bp, building_bp
+from routes.imageRoute import image_bp
 
 app = Flask(__name__)
 
@@ -16,11 +17,11 @@ connect(
 app.register_blueprint(user_bp, url_prefix="/api")
 app.register_blueprint(building_bp, url_prefix="/api")
 
+app.register_blueprint(image_bp)
 
 @app.route("/", methods=["GET"])
 def home():
     return "Welcome to the Flask API!"
-
 
 # Define a simple API endpoint
 @app.route("/api/hello", methods=["GET"])
