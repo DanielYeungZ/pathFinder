@@ -1,11 +1,10 @@
 import unittest
 from flask import Flask
-from flask.testing import FlaskClient
-from building_routes import building_bp
+from routes.building_routes import building_bp
 from models import User, Building
 import jwt
 from config import TOKEN_SECRET_KEY
-from mongoengine import connect, Document, StringField, EmailField
+from mongoengine import connect
 from utils.common import printMsg
 from bson import ObjectId
 

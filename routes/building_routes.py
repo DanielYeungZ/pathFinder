@@ -2,7 +2,7 @@ from flask import Blueprint, request, jsonify
 from models import Building, User
 from datetime import datetime, timezone, timedelta
 import jwt
-from config import TOKEN_SECRET_KEY as AC_TOKEN_SECRET_KEY
+from config import TOKEN_SECRET_KEY
 
 # Create a Blueprint for Building routes
 building_bp = Blueprint('building', __name__)
@@ -16,7 +16,7 @@ def create_building():
 
     try:
         # Decode the token
-        decoded_token = jwt.decode(token, AC_TOKEN_SECRET_KEY, algorithms=['HS256'])
+        decoded_token = jwt.decode(token, TOKEN_SECRET_KEY, algorithms=['HS256'])
         user_id = decoded_token.get('user_id')
 
         # Retrieve the user information
