@@ -1,7 +1,7 @@
 # app.py
 from flask import Flask, jsonify
 from mongoengine import connect
-from routes.user_routes import user_bp  #
+from routes import user_bp, building_bp
 
 app = Flask(__name__)
 
@@ -13,7 +13,7 @@ connect(
 )
 
 app.register_blueprint(user_bp, url_prefix='/api')
-
+app.register_blueprint(building_bp, url_prefix='/api')
 
 @app.route('/', methods=['GET'])
 def home():
