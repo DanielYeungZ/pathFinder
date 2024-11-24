@@ -28,7 +28,6 @@ class User(Document):
 
 class Building(Document):
     name = StringField(required=True, max_length=100)
-    email = StringField(required=True, max_length=100)
     created_at = DateTimeField(default=lambda: datetime.now(timezone.utc))
     updated_at = DateTimeField(default=lambda: datetime.now(timezone.utc))
     user = ReferenceField(User, required=True)
