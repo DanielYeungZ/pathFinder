@@ -22,7 +22,7 @@ def create_user():
 
     return jsonify({"message": "User created!", "user_id": str(user.id)}), 201
 
-@user_bp.route('/user/sample', methods=['get'])
+@user_bp.route('/user/sample', methods=['GET'])
 def create_sample_user():
     username = "test" + datetime.now(timezone.utc).isoformat()
     email = username + '@test.com'
