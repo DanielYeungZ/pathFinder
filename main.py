@@ -1,7 +1,7 @@
 # app.py
 from flask import Flask, jsonify
-from mongoengine import Document, StringField, connect
-from user_routes import user_bp  #
+from mongoengine import connect
+from routes.user_routes import user_bp  #
 
 app = Flask(__name__)
 
