@@ -15,7 +15,7 @@ class BuildingRoutesTestCase(unittest.TestCase):
         self.app.register_blueprint(building_bp, url_prefix='/api')
         self.client = self.app.test_client()
         self.app.config['TESTING'] = True
-        self.debug = True
+        self.debug = False
 
         connect(db='pathFinder',
                 host='mongodb+srv://db1:VIotwHFXr3WA1JiT@cluster0.ohmao.mongodb.net/',

@@ -1,12 +1,20 @@
-from mongoengine import Document, EmbeddedDocument, StringField, ReferenceField, EmbeddedDocumentField, DateTimeField
+from mongoengine import (
+    Document,
+    EmbeddedDocument,
+    StringField,
+    ReferenceField,
+    EmbeddedDocumentField,
+    DateTimeField,
+)
 from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime, timezone
+
 
 # Define the User model (Document)
 class User(Document):
     username = StringField(required=True, max_length=50)
     email = StringField(required=True, max_length=100)
-    status = StringField(required=True, max_length=40,default="active")
+    status = StringField(required=True, max_length=40, default="active")
     password_hash = StringField(required=True)
     created_at = DateTimeField(default=lambda: datetime.now(timezone.utc))
     updated_at = DateTimeField(default=lambda: datetime.now(timezone.utc))
@@ -23,5 +31,3 @@ class User(Document):
             self.created_at = datetime.now(timezone.utc)
         self.updated_at = datetime.now(timezone.utc)
         return super(User, self).save(*args, **kwargs)
-
-

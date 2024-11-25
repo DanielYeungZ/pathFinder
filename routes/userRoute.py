@@ -6,11 +6,11 @@ from config import TOKEN_SECRET_KEY
 
 
 # Create a Blueprint for User routes
-user_bp = Blueprint('user', __name__)
+user_bp = Blueprint("user", __name__)
 
 
 # Create a user with an address and profile (POST request)
-@user_bp.route('/user', methods=['POST'])
+@user_bp.route("/user", methods=["POST"])
 def create_user():
     data = request.get_json()
     username = data.get("username")
@@ -22,10 +22,11 @@ def create_user():
 
     return jsonify({"message": "User created!", "user_id": str(user.id)}), 201
 
-@user_bp.route('/user/sample', methods=['GET'])
+
+@user_bp.route("/user/sample", methods=["GET"])
 def create_sample_user():
     username = "test" + datetime.now(timezone.utc).isoformat()
-    email = username + '@test.com'
+    email = username + "@test.com"
     password = "test"
 
     user = User(username=username, email=email)
@@ -33,9 +34,10 @@ def create_sample_user():
     user.save()
 
     user_count = User.objects.count()
-    return jsonify({"user": user.to_json(),"count":user_count})
+    return jsonify({"user": user.to_json(), "count": user_count})
 
-@user_bp.route('/user/login', methods=['POST'])
+
+@user_bp.route("/user/login", methods=["POST"])
 def login_user():
     try:
         data = request.get_json()
@@ -51,10 +53,15 @@ def login_user():
         user = User.objects(email=email).first()
         if user and user.check_password(password):
             # Generate JWT token
-            token = jwt.encode({
-                'user_id': str(user.id),
-                'exp': datetime.now(timezone.utc) + timedelta(hours=12)  # Use timedelta correctly
-            }, TOKEN_SECRET_KEY, algorithm='HS256')
+            token = jwt.encode(
+                {
+                    "user_id": str(user.id),
+                    "exp": datetime.now(timezone.utc)
+                    + timedelta(hours=12),  # Use timedelta correctly
+                },
+                TOKEN_SECRET_KEY,
+                algorithm="HS256",
+            )
 
             return jsonify({"message": "Login successful!", "token": token}), 200
         else:
@@ -63,17 +70,16 @@ def login_user():
         return jsonify({"message": "An error occurred", "error": str(e)}), 500
 
 
-
-@user_bp.route('/user/info', methods=['GET'])
+@user_bp.route("/user/info", methods=["GET"])
 def get_user_info():
-    token = request.headers.get('Authorization')
+    token = request.headers.get("Authorization")
     if not token:
         return jsonify({"message": "Token is missing"}), 401
 
     try:
         # Decode the token
-        decoded_token = jwt.decode(token, TOKEN_SECRET_KEY, algorithms=['HS256'])
-        user_id = decoded_token.get('user_id')
+        decoded_token = jwt.decode(token, TOKEN_SECRET_KEY, algorithms=["HS256"])
+        user_id = decoded_token.get("user_id")
 
         # Retrieve the user information
         user = User.objects(id=user_id).first()
