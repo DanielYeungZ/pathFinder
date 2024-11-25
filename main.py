@@ -9,7 +9,8 @@ connect(
     db='pathFinder',
     host='mongodb+srv://db1:VIotwHFXr3WA1JiT@cluster0.ohmao.mongodb.net/',
     tls=True,
-    tlsAllowInvalidCertificates=True
+    tlsAllowInvalidCertificates=True,
+    uuidRepresentation='standard'
 )
 
 app.register_blueprint(user_bp, url_prefix='/api')
