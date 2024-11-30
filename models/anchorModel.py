@@ -8,7 +8,9 @@ from mongoengine import (
     DateTimeField,
 )
 from datetime import datetime, timezone
-from models import Building, Image
+from .imageModel import Image
+from models import Building
+
 
 
 # Define the User model (Document)
