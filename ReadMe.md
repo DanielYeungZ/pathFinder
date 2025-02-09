@@ -24,8 +24,16 @@ Follow these steps to set up the project:
    ```
 
 4. **run main**:
+
    ```bash
    python3 main.py
+   ```
+
+5. **use Makefile**:
+   ```bash
+   make venv
+   make install
+   make run
    ```
 
 ## Project Structure

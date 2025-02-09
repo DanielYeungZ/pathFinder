@@ -4,7 +4,13 @@
 
 venv:
 	python3 -m venv venv
+
+venvActivate:
 	source venv/bin/activate
+
+all: 
+	pip3 install -r requirements.txt
+	python3 main.py
 
 install:
 	pip3 install -r requirements.txt
