@@ -1,7 +1,7 @@
 import unittest
 import warnings
 from flask import Flask
-from routes.auth import token_required
+from services.auth import token_required
 from routes.imageRoute import image_bp
 from models import User, Building, Image
 import jwt

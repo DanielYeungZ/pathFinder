@@ -2,7 +2,7 @@ from flask import Blueprint, request, jsonify
 import boto3
 import requests
 from models import Building, Image
-from .auth import token_required
+from services import token_required
 from config import (
     ROBOFLOW_API_KEY,
     ROBOFLOW_UPLOAD_URL,
