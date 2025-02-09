@@ -1,4 +1,5 @@
 import unittest
+import warnings
 from flask import Flask
 from routes.auth import token_required
 from routes.imageRoute import image_bp
@@ -85,4 +86,5 @@ class ImageRoutesTestCase(unittest.TestCase):
 
 
 if __name__ == "__main__":
-    unittest.main()
+    warnings.filterwarnings("ignore")
+    unittest.main(verbosity=2)

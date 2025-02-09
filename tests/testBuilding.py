@@ -1,10 +1,11 @@
 import unittest
+import warnings
 from flask import Flask
 from routes.buildingRoute import building_bp
 from models import User, Building
 import jwt
 from config import TOKEN_SECRET_KEY
-from mongoengine import connect
+from mongoengine import connect,disconnect
 from utils.common import printMsg
 from bson import ObjectId
 
@@ -38,6 +39,7 @@ class BuildingRoutesTestCase(unittest.TestCase):
             printMsg(self.test_user)
         User.objects(id=self.test_user.id).delete()
         Building.objects(user=self.test_user).delete()
+        disconnect()
 
     def test_create_building_success(self):
         response = self.client.post('/api/building', headers={'Authorization': self.valid_token},
@@ -72,4 +74,5 @@ class BuildingRoutesTestCase(unittest.TestCase):
         self.assertIn('User not found', response.json['message'])
 
 if __name__ == '__main__':
-    unittest.main()
+    warnings.filterwarnings("ignore")
+    unittest.main(verbosity=2)
