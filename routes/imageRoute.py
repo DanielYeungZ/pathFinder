@@ -10,6 +10,7 @@ from config import (
     S3_KEY,
     S3_KEY_ID,
     AWS_DEFAULT_REGION,
+    S3_BUCKET,
 )
 
 image_bp = Blueprint("image", __name__)
@@ -21,7 +22,6 @@ s3_client = boto3.client(
     aws_secret_access_key=S3_KEY,
     region_name=AWS_DEFAULT_REGION,
 )
-S3_BUCKET = "your-s3-bucket-name"
 
 
 @image_bp.route("/upload_image", methods=["POST"])
@@ -36,8 +36,9 @@ def upload_image(current_user):
 
     # Upload to S3
     s3_key = f"images/{file.filename}"
-    s3_client.upload_fileobj(file, S3_BUCKET, s3_key)
+    s3_client.upload_fileobj(file, S3_BUCKET, s3_key,)
     s3_url = f"https://{S3_BUCKET}.s3.amazonaws.com/{s3_key}"
+    print(f"\n Uploaded to S3: {s3_url} " )
 
     # Initialize roboflow_data
     roboflow_data = {}

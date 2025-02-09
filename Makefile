@@ -12,5 +12,7 @@ install:
 test:
 	PYTHONWARNINGS=ignore python3 -m unittest discover -s ./tests -v
 
+testImage:
+	PYTHONWARNINGS=ignore python3 -m unittest ./tests/testImage.py -v
 run:
 	python3 main.py

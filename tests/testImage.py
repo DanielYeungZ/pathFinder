@@ -8,7 +8,7 @@ import jwt
 from config import TOKEN_SECRET_KEY
 from mongoengine import connect, disconnect
 from io import BytesIO
-
+import os
 
 class ImageRoutesTestCase(unittest.TestCase):
     def setUp(self):
@@ -44,7 +44,7 @@ class ImageRoutesTestCase(unittest.TestCase):
         # Clean up the database
         User.objects(id=self.test_user.id).delete()
         Building.objects(id=self.test_building.id).delete()
-        Image.objects.delete()
+        # Image.objects.delete()
         disconnect()
 
     def test_upload_image_success(self):
@@ -60,6 +60,25 @@ class ImageRoutesTestCase(unittest.TestCase):
             data=data,
             content_type="multipart/form-data",
         )
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("File uploaded successfully", response.json["message"])
+
+    def test_upload_real_image_success(self):
+        image_path = os.path.join(os.path.dirname(__file__), 'assets', 'ENG_Floor1_4.jpg')
+
+        with open(image_path, 'rb') as img:
+            data = {
+                "file": (img, "ENG_Floor1_4.jpg"),
+                "building_id": str(self.test_building.id),
+                "type": "raw",
+                "floor": 1,
+            }
+            response = self.client.post(
+                "/api/upload_image",
+                headers={"Authorization": self.valid_token},
+                data=data,
+                content_type="multipart/form-data",
+            )
         self.assertEqual(response.status_code, 200)
         self.assertIn("File uploaded successfully", response.json["message"])
 
