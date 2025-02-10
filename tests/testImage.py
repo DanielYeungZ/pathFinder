@@ -10,6 +10,7 @@ from mongoengine import connect, disconnect
 from io import BytesIO
 import os
 
+
 class ImageRoutesTestCase(unittest.TestCase):
     def setUp(self):
         self.app = Flask(__name__)
@@ -64,9 +65,11 @@ class ImageRoutesTestCase(unittest.TestCase):
         self.assertIn("File uploaded successfully", response.json["message"])
 
     def test_upload_real_image_success(self):
-        image_path = os.path.join(os.path.dirname(__file__), 'assets', 'ENG_Floor1_4.jpg')
+        image_path = os.path.join(
+            os.path.dirname(__file__), "assets", "ENG_Floor1_4.jpg"
+        )
 
-        with open(image_path, 'rb') as img:
+        with open(image_path, "rb") as img:
             data = {
                 "file": (img, "ENG_Floor1_4.jpg"),
                 "building_id": str(self.test_building.id),

@@ -36,9 +36,13 @@ def upload_image(current_user):
 
     # Upload to S3
     s3_key = f"images/{file.filename}"
-    s3_client.upload_fileobj(file, S3_BUCKET, s3_key,)
+    s3_client.upload_fileobj(
+        file,
+        S3_BUCKET,
+        s3_key,
+    )
     s3_url = f"https://{S3_BUCKET}.s3.amazonaws.com/{s3_key}"
-    print(f"\n Uploaded to S3: {s3_url} " )
+    print(f"\n Uploaded to S3: {s3_url} ")
 
     # Initialize roboflow_data
     roboflow_data = {}

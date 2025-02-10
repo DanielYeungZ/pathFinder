@@ -6,7 +6,7 @@ from mongoengine import (
     DictField,
     EmbeddedDocumentField,
     DateTimeField,
-    IntField
+    IntField,
 )
 from datetime import datetime, timezone
 from models import Building
@@ -19,7 +19,7 @@ class Image(Document):
         required=True, max_length=100, choices=["raw", "processed", "path"]
     )
     url = StringField(required=True, max_length=200)
-    floor = IntField(required=True)  
+    floor = IntField(required=True)
     created_at = DateTimeField(default=lambda: datetime.now(timezone.utc))
     updated_at = DateTimeField(default=lambda: datetime.now(timezone.utc))
 

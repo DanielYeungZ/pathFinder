@@ -12,7 +12,6 @@ from .imageModel import Image
 from models import Building
 
 
-
 # Define the User model (Document)
 class Anchor(Document):
     building = ReferenceField(Building, required=True)
