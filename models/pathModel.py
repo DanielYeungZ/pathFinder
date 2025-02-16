@@ -15,11 +15,11 @@ from models import Building
 class Path(Document):
     building = ReferenceField(Building, required=True)
     path = DictField()
-    created_at = DateTimeField(default=lambda: datetime.now(timezone.utc))
-    updated_at = DateTimeField(default=lambda: datetime.now(timezone.utc))
+    createdAt = DateTimeField(default=lambda: datetime.now(timezone.utc))
+    updatedAt = DateTimeField(default=lambda: datetime.now(timezone.utc))
 
     def save(self, *args, **kwargs):
-        if not self.created_at:
-            self.created_at = datetime.now(timezone.utc)
-        self.updated_at = datetime.now(timezone.utc)
+        if not self.createdAt:
+            self.createdAt = datetime.now(timezone.utc)
+        self.updatedAt = datetime.now(timezone.utc)
         return super(Path, self).save(*args, **kwargs)

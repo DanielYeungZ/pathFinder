@@ -20,5 +20,6 @@ test:
 
 testImage:
 	PYTHONWARNINGS=ignore python3 -m unittest ./tests/testImage.py -v
+	
 run:
 	python3 main.py

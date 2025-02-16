@@ -14,13 +14,13 @@ from models.userModel import User
 
 class Building(Document):
     name = StringField(required=True, max_length=100)
-    created_at = DateTimeField(default=lambda: datetime.now(timezone.utc))
-    updated_at = DateTimeField(default=lambda: datetime.now(timezone.utc))
+    createdAt = DateTimeField(default=lambda: datetime.now(timezone.utc))
+    updatedAt = DateTimeField(default=lambda: datetime.now(timezone.utc))
     user = ReferenceField(User, required=True)
     metadata = DictField()
 
     def save(self, *args, **kwargs):
-        if not self.created_at:
-            self.created_at = datetime.now(timezone.utc)
-        self.updated_at = datetime.now(timezone.utc)
+        if not self.updatedAt:
+            self.createdAt = datetime.now(timezone.utc)
+        self.updatedAt = datetime.now(timezone.utc)
         return super(Building, self).save(*args, **kwargs)

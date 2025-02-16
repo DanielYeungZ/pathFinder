@@ -7,5 +7,7 @@ AWS_DEFAULT_REGION = "us-east-2"
 # Configure Roboflow
 ROBOFLOW_API_KEY = "Ym1IvaJmMhRLF9KtY6gK"
 ROBOFLOW_UPLOAD_URL = "https://api.roboflow.com/dataset/your-dataset/upload"
-ROBOFLOW_FEATURE = False
+ROBOFLOW_FEATURE = True
 ROBOFLOW_MODEL = "indoor-map/18"
+
+DEBUG = True

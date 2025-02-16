@@ -12,6 +12,7 @@ from config import (
     AWS_DEFAULT_REGION,
     S3_BUCKET,
 )
+from services.roboflow import analysis, analysisV2, saveData
 
 image_bp = Blueprint("image", __name__)
 
@@ -34,6 +35,8 @@ def upload_image(current_user):
     if file.filename == "":
         return jsonify({"error": "No selected file"}), 400
 
+    fileContent = file.read()
+
     # Upload to S3
     s3_key = f"images/{file.filename}"
     s3_client.upload_fileobj(
@@ -43,18 +46,6 @@ def upload_image(current_user):
     )
     s3_url = f"https://{S3_BUCKET}.s3.amazonaws.com/{s3_key}"
     print(f"\n Uploaded to S3: {s3_url} ")
-
-    # Initialize roboflow_data
-    roboflow_data = {}
-
-    # Upload to Roboflow
-    if ROBOFLOW_FEATURE:
-        roboflow_response = requests.post(
-            ROBOFLOW_UPLOAD_URL,
-            files={"file": file},
-            params={"api_key": ROBOFLOW_API_KEY},
-        )
-        roboflow_data = roboflow_response.json()
 
     # Save image data to MongoDB
     building_id = request.form.get("building_id")
@@ -70,12 +61,22 @@ def upload_image(current_user):
     )
     image.save()
 
+    # Initialize roboflow_data
+    roboflowData = {}
+    inferenceId = None
+
+    # Upload to Roboflow
+    if ROBOFLOW_FEATURE:
+        roboflowData = analysis(fileContent)
+        if roboflowData:
+            saveData(image, roboflowData)
+
     return (
         jsonify(
             {
                 "message": "File uploaded successfully",
                 "s3_url": s3_url,
-                "roboflow_data": roboflow_data,
+                "imageData": image.to_json(),
             }
         ),
         200,
