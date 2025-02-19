@@ -9,6 +9,9 @@ from config import TOKEN_SECRET_KEY
 from mongoengine import connect, disconnect
 from io import BytesIO
 import os
+from config import (
+    S3_BUCKET,
+)
 
 
 class ImageRoutesTestCase(unittest.TestCase):
@@ -105,6 +108,43 @@ class ImageRoutesTestCase(unittest.TestCase):
         )
         self.assertEqual(response.status_code, 401)
         self.assertIn("Token is missing", response.json["message"])
+
+    def test_calculate_path_success(self):
+        data = {
+            "s3_image_url": f"https://{S3_BUCKET}.s3.amazonaws.com/images/ENG_Floor1_4.jpg",
+            "start_point": [0, 0],
+            "end_point": [0, 1]
+        }
+        response = self.client.post(
+            "/api/calculate_path",
+            headers={"Authorization": self.valid_token},
+            json=data
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("path_image_url", response.json)
+
+    def test_calculate_path_missing_params(self):
+        data = {"s3_image_url": f"https://{S3_BUCKET}.s3.amazonaws.com/images/ENG_Floor1_4.jpg"}
+        response = self.client.post(
+            "/api/calculate_path",
+            headers={"Authorization": self.valid_token},
+            json=data
+        )
+        self.assertEqual(response.status_code, 400)
+        self.assertIn("error", response.json)
+
+    def test_download_image_success(self):
+        response = self.client.get(
+            f"/api/download_image?s3_image_url=https://{S3_BUCKET}.s3.amazonaws.com/images/ENG_Floor1_4.jpg",
+            headers={"Authorization": self.valid_token}
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.mimetype, "image/jpeg")
+
+    def test_download_image_missing_url(self):
+        response = self.client.get("/api/download_image", headers={"Authorization": self.valid_token})
+        self.assertEqual(response.status_code, 400)
+        self.assertIn("error", response.json)
 
 
 if __name__ == "__main__":

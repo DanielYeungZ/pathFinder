@@ -92,17 +92,27 @@ def upload_image(current_user):
 @token_required
 def calculate_path(current_user):
     data = request.get_json()
+
+    if not data or "s3_image_url" not in data or "start_point" not in data or "end_point" not in data:
+        return jsonify({"error": "Missing required parameters"}), 400
+
     s3_image_url = data.get("s3_image_url")
     start_point = tuple(data.get("start_point"))
     end_point = tuple(data.get("end_point"))
+
+    if not start_point or not end_point:
+        return jsonify({"error": "Start and end points are required"}), 400
 
     if not s3_image_url or not start_point or not end_point:
         return jsonify({"error": "Missing required parameters"}), 400
 
     # Download image from S3
-    s3_key = s3_image_url.split(f"https://{S3_BUCKET}.s3.amazonaws.com/")[-1]
-    image_stream = BytesIO()
-    s3_client.download_fileobj(S3_BUCKET, s3_key, image_stream)
+    try:
+        s3_key = s3_image_url.split(f"https://{S3_BUCKET}.s3.amazonaws.com/")[-1]
+        image_stream = BytesIO()
+        s3_client.download_fileobj(S3_BUCKET, s3_key, image_stream)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
     image_stream.seek(0)
     image_array = np.frombuffer(image_stream.read(), dtype=np.uint8)
     image = cv2.imdecode(image_array, cv2.IMREAD_COLOR)
