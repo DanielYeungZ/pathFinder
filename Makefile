@@ -21,5 +21,8 @@ test:
 testImage:
 	PYTHONWARNINGS=ignore python3 -m unittest ./tests/testImage.py -v
 	
+testBuilding:
+	PYTHONWARNINGS=ignore python3 -m unittest ./tests/testBuilding.py -v
+
 run:
 	python3 main.py

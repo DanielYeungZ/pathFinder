@@ -88,6 +88,48 @@ class BuildingRoutesTestCase(unittest.TestCase):
         self.assertEqual(response.status_code, 404)
         self.assertIn("User not found", response.json["message"])
 
+    def test_get_all_buildings(self):
+        # Create buildings for the user
+        building1 = Building(name="Building 1", user=self.test_user)
+        building2 = Building(name="Building 2", user=self.test_user)
+        building1.save()
+        building2.save()
+
+        # Generate a valid token for the user
+        token = jwt.encode(
+            {"user_id": str(self.test_user.id)}, TOKEN_SECRET_KEY, algorithm="HS256"
+        )
+
+        # Get all buildings for the user
+        response = self.client.get(
+            "/api/buildings",
+            headers={"Authorization": token},
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response.json["buildings"]), 2)
+        self.assertIn("Building 1", [b["name"] for b in response.json["buildings"]])
+        self.assertIn("Building 2", [b["name"] for b in response.json["buildings"]])
+
+    def test_get_building_by_id(self):
+        # Create a building for the user
+        building = Building(name="Building 1", user=self.test_user)
+        building.save()
+
+        # Generate a valid token for the user
+        token = jwt.encode(
+            {"user_id": str(self.test_user.id)}, TOKEN_SECRET_KEY, algorithm="HS256"
+        )
+
+        # Get the building by ID
+        response = self.client.get(
+            f"/api/building/{str(building.id)}",
+            headers={"Authorization": token},
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json["building"]["name"], "Building 1")
+
 
 if __name__ == "__main__":
     warnings.filterwarnings("ignore")
