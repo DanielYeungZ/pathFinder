@@ -1,5 +1,5 @@
 from flask import Blueprint, request, jsonify
-from models import Building, User
+from models import Building, User, Image
 from datetime import datetime, timezone, timedelta
 import jwt
 from config import TOKEN_SECRET_KEY
@@ -99,6 +99,35 @@ def get_all_buildings():
     buildings_list = [
         {"id": str(building.id), "name": building.name} for building in buildings
     ]
+
+    return jsonify({"buildings": buildings_list}), 200
+
+
+@building_bp.route("/buildings_with_images", methods=["GET"])
+@handle_errors
+def get_all_buildings_with_images():
+    token = request.headers.get("Authorization")
+    if not token:
+        return jsonify({"message": "Token is missing"}), 401
+
+    # Decode the token
+    decoded_token = jwt.decode(token, TOKEN_SECRET_KEY, algorithms=["HS256"])
+    user_id = decoded_token.get("user_id")
+
+    # Retrieve the user information
+    user = User.objects(id=user_id).first()
+    if not user:
+        return jsonify({"message": "User not found"}), 404
+
+    # Retrieve all buildings for the user
+    buildings = Building.objects(user=user)
+    buildings_list = []
+    for building in buildings:
+        images = Image.objects(building=building)
+        images_list = [image.to_dict() for image in images]
+        building_dict = building.to_dict()
+        building_dict["images"] = images_list
+        buildings_list.append(building_dict)
 
     return jsonify({"buildings": buildings_list}), 200
 

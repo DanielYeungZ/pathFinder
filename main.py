@@ -17,11 +17,13 @@ connect(
 app.register_blueprint(user_bp, url_prefix="/api")
 app.register_blueprint(building_bp, url_prefix="/api")
 
-app.register_blueprint(image_bp)
+app.register_blueprint(image_bp, url_prefix="/api")
+
 
 @app.route("/", methods=["GET"])
 def home():
     return "Welcome to the Flask API!"
+
 
 # Define a simple API endpoint
 @app.route("/api/hello", methods=["GET"])

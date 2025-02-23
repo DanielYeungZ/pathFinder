@@ -31,3 +31,16 @@ class Image(Document):
             self.createdAt = datetime.now(timezone.utc)
         self.updatedAt = datetime.now(timezone.utc)
         return super(Image, self).save(*args, **kwargs)
+
+    def to_dict(self):
+        return {
+            "id": str(self.id),
+            "building": str(self.building.id),
+            "type": self.type,
+            "url": self.url,
+            "floor": self.floor,
+            "imageWidth": self.imageWidth,
+            "imageHeight": self.imageHeight,
+            "createdAt": self.createdAt.isoformat(),
+            "updatedAt": self.updatedAt.isoformat(),
+        }

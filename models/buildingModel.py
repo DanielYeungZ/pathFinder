@@ -24,3 +24,12 @@ class Building(Document):
             self.createdAt = datetime.now(timezone.utc)
         self.updatedAt = datetime.now(timezone.utc)
         return super(Building, self).save(*args, **kwargs)
+
+    def to_dict(self):
+        return {
+            "id": str(self.id),
+            "name": self.name,
+            "user": str(self.user.id),
+            "createdAt": self.createdAt.isoformat(),
+            "updatedAt": self.updatedAt.isoformat(),
+        }
