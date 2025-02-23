@@ -35,3 +35,21 @@ class Anchor(Document):
             self.createdAt = datetime.now(timezone.utc)
         self.updatedAt = datetime.now(timezone.utc)
         return super(Anchor, self).save(*args, **kwargs)
+
+    def to_dict(self):
+        return {
+            "id": str(self.id),
+            "image": str(self.image.id) if self.image else None,
+            "x": self.x,
+            "y": self.y,
+            "width": self.width,
+            "height": self.height,
+            "confidence": self.confidence,
+            "classType": self.classType,
+            "classId": self.classId,
+            "label": self.label,
+            "detectionId": self.detectionId,
+            "metadata": self.metadata,
+            "createdAt": self.createdAt.isoformat() if self.createdAt else None,
+            "updatedAt": self.updatedAt.isoformat() if self.updatedAt else None,
+        }

@@ -4,10 +4,14 @@ import cv2
 import numpy as np
 import requests
 from io import BytesIO
-from models import Building, Image
+from models import Building, Image, Anchor
 from services import token_required
 from pathCalculator.graph_utils import create_graph, shortest_path
-from pathCalculator.image_processing import read_image, convert_to_grayscale, apply_threshold
+from pathCalculator.image_processing import (
+    read_image,
+    convert_to_grayscale,
+    apply_threshold,
+)
 from pathCalculator import visualize_path
 from config import (
     ROBOFLOW_API_KEY,
@@ -94,7 +98,12 @@ def upload_image(current_user):
 def calculate_path(current_user):
     data = request.get_json()
 
-    if not data or "s3_image_url" not in data or "start_point" not in data or "end_point" not in data:
+    if (
+        not data
+        or "s3_image_url" not in data
+        or "start_point" not in data
+        or "end_point" not in data
+    ):
         return jsonify({"error": "Missing required parameters"}), 400
 
     s3_image_url = data.get("s3_image_url")
@@ -135,15 +144,22 @@ def calculate_path(current_user):
     output_s3_key = f"processed_images/path_result.jpg"
 
     # Upload result back to S3
-    s3_client.upload_fileobj(img_buffer, S3_BUCKET, output_s3_key, ExtraArgs={"ContentType": "image/jpeg"})
+    s3_client.upload_fileobj(
+        img_buffer, S3_BUCKET, output_s3_key, ExtraArgs={"ContentType": "image/jpeg"}
+    )
     output_s3_url = f"https://{S3_BUCKET}.s3.amazonaws.com/{output_s3_key}"
 
     # TODO: save & update related information in database (image & request)
 
-    return jsonify({
-        "message": "Path calculated and saved successfully",
-        "path_image_url": output_s3_url
-    }), 200
+    return (
+        jsonify(
+            {
+                "message": "Path calculated and saved successfully",
+                "path_image_url": output_s3_url,
+            }
+        ),
+        200,
+    )
 
 
 @image_bp.route("/download_image", methods=["GET"])
@@ -160,6 +176,25 @@ def download_image(current_user):
     try:
         s3_client.download_fileobj(S3_BUCKET, s3_key, image_stream)
         image_stream.seek(0)
-        return send_file(image_stream, mimetype='image/jpeg')
+        return send_file(image_stream, mimetype="image/jpeg")
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+# Get an image with anchors by ID (GET request)
+@image_bp.route("/image/<image_id>", methods=["GET"])
+@token_required
+def get_image_with_anchors(current_user, image_id):
+    try:
+        image = Image.objects(id=image_id).first()
+
+        if not image:
+            return jsonify({"error": "Image not found"}), 404
+
+        anchors = Anchor.objects(image=image)
+
+        image_data = image.to_dict()
+        image_data["anchors"] = [anchor.to_dict() for anchor in anchors]
+        return jsonify({"image": image_data}), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 500
