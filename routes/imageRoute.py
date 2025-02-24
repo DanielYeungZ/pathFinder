@@ -121,11 +121,18 @@ def calculate_path(current_user):
         s3_key = s3_image_url.split(f"https://{S3_BUCKET}.s3.amazonaws.com/")[-1]
         image_stream = BytesIO()
         s3_client.download_fileobj(S3_BUCKET, s3_key, image_stream)
+        if image_stream.getbuffer().nbytes == 0:
+            return jsonify({"error": "Downloaded image is empty"}), 500
+
     except Exception as e:
         return jsonify({"error": str(e)}), 500
     image_stream.seek(0)
     image_array = np.frombuffer(image_stream.read(), dtype=np.uint8)
+    if image_array.size == 0:
+        return jsonify({"error": "Failed to decode image, empty buffer"}), 500
     image = cv2.imdecode(image_array, cv2.IMREAD_COLOR)
+    if image is None:
+        return jsonify({"error": "Failed to decode image"}), 500
 
     # Process image
     gray_image = convert_to_grayscale(image)
