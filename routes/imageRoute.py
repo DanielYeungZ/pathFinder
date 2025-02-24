@@ -5,7 +5,7 @@ import numpy as np
 import requests
 from io import BytesIO
 from models import Building, Image, Anchor
-from services import token_required
+from services import token_required, logs
 from pathCalculator.graph_utils import create_graph, shortest_path
 from pathCalculator.image_processing import (
     read_image,
@@ -42,15 +42,16 @@ def upload_image(current_user):
         return jsonify({"error": "No file part"}), 400
 
     file = request.files["file"]
+
     if file.filename == "":
         return jsonify({"error": "No selected file"}), 400
 
     fileContent = file.read()
-
+    logs(f"File content size: {len(fileContent)} bytes")
     # Upload to S3
     s3_key = f"images/{file.filename}"
     s3_client.upload_fileobj(
-        file,
+        BytesIO(fileContent),
         S3_BUCKET,
         s3_key,
     )

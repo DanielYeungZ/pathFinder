@@ -148,6 +148,7 @@ class ImageRoutesTestCase(unittest.TestCase):
         Anchor.objects(id=anchor1.id).delete()
 
     def test_calculate_path_success(self):
+
         data = {
             "s3_image_url": f"https://{S3_BUCKET}.s3.amazonaws.com/images/ENG_Floor1_4.jpg",
             "start_point": [0, 0],
