@@ -5,16 +5,21 @@ from mongoengine import (
     ReferenceField,
     DictField,
     EmbeddedDocumentField,
+    ListField,
+    IntField,
     DateTimeField,
 )
 from datetime import datetime, timezone
-from models import Building
+from models import Building, Image
 
 
 # Define the User model (Document)
 class Path(Document):
-    building = ReferenceField(Building, required=True)
+    image = ReferenceField(Image, required=True)
     path = DictField()
+    url = StringField(required=True, max_length=200)
+    start = ListField(IntField(), required=True)
+    end = ListField(IntField(), required=True)
     createdAt = DateTimeField(default=lambda: datetime.now(timezone.utc))
     updatedAt = DateTimeField(default=lambda: datetime.now(timezone.utc))
 

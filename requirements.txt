@@ -32,3 +32,5 @@ roboflow==1.1.53
 numpy==2.2.3
 opencv-python-headless==4.10.0.84
 networkx==3.4.2
+celery==5.4.0
+redis==5.2.1
