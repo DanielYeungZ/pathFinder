@@ -11,3 +11,4 @@ ROBOFLOW_FEATURE = True
 ROBOFLOW_MODEL = "indoor-map/18"
 
 DEBUG = True
+DETAIL_DEBUG = False

@@ -1,3 +1,4 @@
+import copy
 from flask import Blueprint, request, jsonify, send_file
 import boto3
 import cv2
@@ -6,7 +7,7 @@ import numpy as np
 import requests
 from io import BytesIO
 from models import Building, Image, Anchor, Path
-from services import token_required, logs, handle_errors
+from services import token_required, logs, handle_errors, detail_logs
 from pathCalculator.graph_utils import create_graph, shortest_path
 from pathCalculator.image_processing import (
     read_image,
@@ -83,22 +84,54 @@ def extract_text_and_coordinates(textract_response):
             bbox = block["Geometry"]["BoundingBox"]
             x = bbox["Left"]
             y = bbox["Top"]
-            text_data.append({"text": text, "x": x, "y": y})
+            width = bbox["Width"]
+            height = bbox["Height"]
+            text_data.append(
+                {"text": text, "x": x, "y": y, "width": width, "height": height}
+            )
     return text_data
 
 
-def filter_text_in_roboflow_boxes(text_data, roboflow_boxes):
+def convert_normalized_to_pixel(normalized_coords, image_width, image_height):
+    return {
+        "x": int(normalized_coords["x"] * image_width),
+        "y": int(normalized_coords["y"] * image_height),
+        "width": int(normalized_coords["width"] * image_width),
+        "height": int(normalized_coords["height"] * image_height),
+    }
+
+
+def filter_text_in_roboflow_boxes(text_data, roboflow_boxes, image_width, image_height):
     filtered_text = []
     for text_item in text_data:
-        x, y = text_item["x"], text_item["y"]
+        pixel_coords = convert_normalized_to_pixel(text_item, image_width, image_height)
+        x, y = pixel_coords["x"], pixel_coords["y"]
+        width, height = pixel_coords["width"], pixel_coords["height"]
+        # print(f"Text item: {text_item}")
         for box in roboflow_boxes:
+            # print(f"Box: {box}")
             if (
-                box["x"] <= x <= box["x"] + box["width"]
+                box["class"] == "classroom"
+                and box["x"] <= x <= box["x"] + box["width"]
+                and box["x"] <= x + width <= box["x"] + box["width"]
                 and box["y"] <= y <= box["y"] + box["height"]
+                and box["y"] <= y + height <= box["y"] + box["height"]
             ):
-                filtered_text.append(text_item)
-                break
+                box.setdefault("tags", []).append(text_item["text"])
+                # break
+    for box in roboflow_boxes:
+        if box["class"] == "classroom":
+            detail_logs(f"Box: {box}")
     return filtered_text
+
+
+def decode_image(file_content):
+    image = cv2.imdecode(np.frombuffer(file_content, np.uint8), cv2.IMREAD_COLOR)
+    if image is None:
+        return None, 0, 0
+    image_height, image_width = image.shape[:2]
+    logs(f"image_height: {image_height}, image_width: {image_width}")
+    return image, image_height, image_width
 
 
 @image_bp.route("/upload_image", methods=["POST"])
@@ -119,19 +152,25 @@ def upload_image(current_user):
     with concurrent.futures.ThreadPoolExecutor() as executor:
         future_s3 = executor.submit(upload_to_s3, BytesIO(file_content), s3_key)
         future_roboflow = executor.submit(run_roboflow_analysis, file_content)
+        future_image = executor.submit(decode_image, copy.deepcopy(file_content))
 
         s3_url = future_s3.result()
         roboflow_data = future_roboflow.result()
+        image, image_height, image_width = future_image.result()
 
     # Analyze with Textract
     try:
-        textract_response = analyze_with_textract(S3_BUCKET, s3_key)
-        text_data = extract_text_and_coordinates(textract_response)
-        logs(f"Textract response: {text_data}")
-        # filtered_text_data = filter_text_in_roboflow_boxes(text_data, roboflow_data['boxes'])
+        if s3_url and image is not None:
+            textract_response = analyze_with_textract(S3_BUCKET, s3_key)
+            text_data = extract_text_and_coordinates(textract_response)
+            detail_logs(f"Textract response: {text_data}")
+
+            filter_text_in_roboflow_boxes(
+                text_data, roboflow_data["predictions"], image_width, image_height
+            )
         # print(f"Textract response: {text_data}")
     except Exception as e:
-        logs(f"Textract error: {str(e)}")
+        logs(f"Textract error: {e}")
         textract_response = None
 
     # Save image data to MongoDB

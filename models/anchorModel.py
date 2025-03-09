@@ -8,6 +8,7 @@ from mongoengine import (
     EmbeddedDocumentField,
     IntField,
     DateTimeField,
+    ListField,
 )
 from datetime import datetime, timezone
 from .imageModel import Image
@@ -29,6 +30,9 @@ class Anchor(Document):
     metadata = DictField()
     createdAt = DateTimeField(default=lambda: datetime.now(timezone.utc))
     updatedAt = DateTimeField(default=lambda: datetime.now(timezone.utc))
+    tags = ListField(
+        StringField(max_length=100), default=list
+    )  # Set default value to an empty list
 
     def save(self, *args, **kwargs):
         if not self.createdAt:
@@ -40,6 +44,7 @@ class Anchor(Document):
         return {
             "id": str(self.id),
             "image": str(self.image.id) if self.image else None,
+            "tags": self.tags,
             "x": self.x,
             "y": self.y,
             "width": self.width,

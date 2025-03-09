@@ -4,7 +4,7 @@ import tempfile
 import time
 from config import ROBOFLOW_API_KEY, ROBOFLOW_MODEL
 from roboflow import Roboflow
-from services.utils import logs
+from services.utils import logs, detail_logs
 from models import Anchor
 
 rf = Roboflow(api_key=ROBOFLOW_API_KEY)
@@ -32,7 +32,7 @@ def analysis(file_content):
             if response.status_code == 200:
                 result = response.json()
                 # Print the response
-                logs(f"Roboflow upload result: {json.dumps(result, indent=4)}")
+                detail_logs(f"Roboflow upload result: {json.dumps(result, indent=4)}")
                 return result
             else:
                 result = response.json()
@@ -60,6 +60,7 @@ def saveData(image, roboflowData):
 
     predictions = roboflowData.get("predictions")
     for prediction in predictions:
+        print("prediction====>", prediction)
         anchor = Anchor(
             image=image,
             x=prediction.get("x"),
@@ -70,6 +71,7 @@ def saveData(image, roboflowData):
             classType=prediction.get("class"),
             classId=prediction.get("class_id"),
             detectionId=prediction.get("detection_id"),
+            tags=prediction.get("tags"),
         )
         anchor.save()
     return
