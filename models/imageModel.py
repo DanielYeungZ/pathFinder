@@ -35,7 +35,19 @@ class Image(Document):
     def to_dict(self):
         return {
             "id": str(self.id),
-            "building": str(self.building.id),
+            "building": self.building.to_dict(),
+            "type": self.type,
+            "url": self.url,
+            "floor": self.floor,
+            "imageWidth": self.imageWidth,
+            "imageHeight": self.imageHeight,
+            "createdAt": self.createdAt.isoformat(),
+            "updatedAt": self.updatedAt.isoformat(),
+        }
+
+    def simple_dict(self):
+        return {
+            "id": str(self.id),
             "type": self.type,
             "url": self.url,
             "floor": self.floor,

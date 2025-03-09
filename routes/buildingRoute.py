@@ -4,6 +4,7 @@ from datetime import datetime, timezone, timedelta
 import jwt
 from config import TOKEN_SECRET_KEY
 from services.error import handle_errors
+from services import token_required, logs
 
 # Create a Blueprint for Building routes
 building_bp = Blueprint("building", __name__)
@@ -12,7 +13,8 @@ building_bp = Blueprint("building", __name__)
 # Create a building with a user linked from the token (POST request)
 @building_bp.route("/building", methods=["POST"])
 @handle_errors
-def create_building():
+@token_required
+def create_building(current_user):
     token = request.headers.get("Authorization")
     if not token:
         return jsonify({"message": "Token is missing"}), 401
@@ -21,17 +23,12 @@ def create_building():
     decoded_token = jwt.decode(token, TOKEN_SECRET_KEY, algorithms=["HS256"])
     user_id = decoded_token.get("user_id")
 
-    # Retrieve the user information
-    user = User.objects(id=user_id).first()
-    if not user:
-        return jsonify({"message": "User not found"}), 404
-
     # Get building data from request
     data = request.get_json()
     name = data.get("name")
 
     # Create and save the building
-    building = Building(name=name, user=user)
+    building = Building(name=name, user=current_user)
     building.save()
 
     return (
@@ -42,7 +39,8 @@ def create_building():
 
 @building_bp.route("/building/<building_id>", methods=["PUT"])
 @handle_errors
-def update_building(building_id):
+@token_required
+def update_building(building_id, current_user):
     token = request.headers.get("Authorization")
     if not token:
         return jsonify({"message": "Token is missing"}), 401
@@ -51,13 +49,8 @@ def update_building(building_id):
     decoded_token = jwt.decode(token, TOKEN_SECRET_KEY, algorithms=["HS256"])
     user_id = decoded_token.get("user_id")
 
-    # Retrieve the user information
-    user = User.objects(id=user_id).first()
-    if not user:
-        return jsonify({"message": "User not found"}), 404
-
     # Retrieve the building by ID
-    building = Building.objects(id=building_id, user=user).first()
+    building = Building.objects(id=building_id, user=current_user).first()
     if not building:
         return jsonify({"message": "Building not found"}), 404
 
@@ -154,6 +147,31 @@ def get_building(building_id):
     if not building:
         return jsonify({"message": "Building not found"}), 404
 
-    building_data = {"id": str(building.id), "name": building.name}
+    images = Image.objects(building=building)
+    images_list = [image.simple_dict() for image in images]
+    building_dict = building.to_dict()
+    building_dict["images"] = images_list
 
-    return jsonify({"building": building_data}), 200
+    return jsonify({"building": building_dict}), 200
+
+
+# Delete a specific building by ID (DELETE request)
+@building_bp.route("/building/<building_id>", methods=["DELETE"])
+@handle_errors
+@token_required
+def delete_building(current_user, building_id):
+    # Retrieve the building by ID
+    building = Building.objects(id=building_id, user=current_user).first()
+    if not building:
+        return jsonify({"message": "Building not found"}), 404
+
+    # Delete associated images
+    Image.objects(building=building).delete()
+
+    # Delete the building
+    building.delete()
+
+    return (
+        jsonify({"message": "Building and associated images deleted successfully"}),
+        200,
+    )

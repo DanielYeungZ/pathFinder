@@ -36,8 +36,19 @@ class ImageRoutesTestCase(unittest.TestCase):
         self.test_user.save()
 
         # Create a test building
-        self.test_building = Building(name="Test Building", user=self.test_user)
-        self.test_building.save()
+        self.test_building = Building(name="Test Building", user=self.test_user).save()
+
+        self.test_image = Image(
+            building=self.test_building,
+            type="processed",
+            url="http://example.com/image2.jpg",
+            floor=2,
+            imageWidth=1024,
+            imageHeight=768,
+        ).save()
+
+        self.test_anchor1 = Anchor(image=self.test_image, x=10, y=20).save()
+        self.test_anchor2 = Anchor(image=self.test_image, x=30, y=40).save()
 
         # Generate a valid token for the test user
         self.valid_token = jwt.encode(
@@ -136,6 +147,12 @@ class ImageRoutesTestCase(unittest.TestCase):
         self.assertIn("image", response.json)
         self.assertEqual(response.json["image"]["id"], str(image.id))
         self.assertEqual(len(response.json["image"]["anchors"]), 2)
+        self.assertEqual(
+            response.json["image"]["building"]["id"], str(self.test_building.id)
+        )
+        self.assertEqual(
+            response.json["image"]["building"]["name"], str(self.test_building.name)
+        )
 
         anchor_labels = [
             anchor["label"] for anchor in response.json["image"]["anchors"]
@@ -188,6 +205,48 @@ class ImageRoutesTestCase(unittest.TestCase):
         )
         self.assertEqual(response.status_code, 400)
         self.assertIn("error", response.json)
+
+    def test_get_image_with_anchors(self):
+        response = self.client.get(
+            f"/api/image/{self.test_image.id}",
+            headers={"Authorization": self.valid_token},
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("image", response.json)
+        self.assertEqual(response.json["image"]["url"], self.test_image.url)
+
+    def test_delete_image(self):
+        # Create an image for the building
+        image = Image(
+            building=self.test_building,
+            type="raw",
+            url="http://example.com/image.jpg",
+            floor=1,
+            imageWidth=800,
+            imageHeight=600,
+        ).save()
+
+        # Create an anchor for the image
+        anchor = Anchor(image=image, x=10, y=20).save()
+
+        # Delete the image
+        response = self.client.delete(
+            f"/api/image/{str(image.id)}",
+            headers={"Authorization": self.valid_token},
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(
+            response.json["message"],
+            "Image and associated anchors deleted successfully",
+        )
+
+        # Verify the image and associated anchors were deleted
+        deleted_image = Image.objects(id=image.id).first()
+        self.assertIsNone(deleted_image)
+
+        deleted_anchor = Anchor.objects(id=anchor.id).first()
+        self.assertIsNone(deleted_anchor)
 
 
 if __name__ == "__main__":

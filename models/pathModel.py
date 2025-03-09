@@ -9,7 +9,7 @@ from mongoengine import (
     IntField,
     DateTimeField,
 )
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 from models import Building, Image
 
 
@@ -22,9 +22,14 @@ class Path(Document):
     end = ListField(IntField(), required=True)
     createdAt = DateTimeField(default=lambda: datetime.now(timezone.utc))
     updatedAt = DateTimeField(default=lambda: datetime.now(timezone.utc))
+    expireAt = DateTimeField(
+        default=lambda: datetime.now(timezone.utc) + timedelta(days=1)
+    )  # Set default expiration to 1 day
 
     def save(self, *args, **kwargs):
         if not self.createdAt:
             self.createdAt = datetime.now(timezone.utc)
         self.updatedAt = datetime.now(timezone.utc)
         return super(Path, self).save(*args, **kwargs)
+
+    meta = {"indexes": [{"fields": ["expireAt"], "expireAfterSeconds": 0}]}

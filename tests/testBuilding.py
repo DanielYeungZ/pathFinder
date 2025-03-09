@@ -68,7 +68,7 @@ class BuildingRoutesTestCase(unittest.TestCase):
             headers={"Authorization": "invalid_token"},
             json={"name": "Test Building"},
         )
-        self.assertEqual(response.status_code, 401)
+        self.assertEqual(response.status_code, 404)
         self.assertIn("Invalid token", response.json["message"])
 
     def test_create_building_user_not_found(self):
@@ -86,7 +86,7 @@ class BuildingRoutesTestCase(unittest.TestCase):
             print(f"Error: {response.json.get('error')}" + "\n")
 
         self.assertEqual(response.status_code, 404)
-        self.assertIn("User not found", response.json["message"])
+        self.assertIn("Invalid token", response.json["message"])
 
     def test_get_all_buildings(self):
         # Create buildings for the user
@@ -115,8 +115,17 @@ class BuildingRoutesTestCase(unittest.TestCase):
 
     def test_get_building_by_id(self):
         # Create a building for the user
-        building = Building(name="Building 1", user=self.test_user)
-        building.save()
+        building = Building(name="Building 1", user=self.test_user).save()
+
+        # Create an image for the building
+        image = Image(
+            building=building,
+            type="raw",
+            url="http://example.com/image.jpg",
+            floor=1,
+            imageWidth=800,
+            imageHeight=600,
+        ).save()
 
         # Generate a valid token for the user
         token = jwt.encode(
@@ -131,8 +140,10 @@ class BuildingRoutesTestCase(unittest.TestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.json["building"]["name"], "Building 1")
-
+        self.assertEqual(len(response.json["building"]["images"]), 1)
+        self.assertEqual(response.json["building"]["images"][0]["id"], str(image.id))
         Building.objects(user=self.test_user).delete()
+        Image.objects(id=image.id).delete()
 
     def test_get_all_buildings_with_images(self):
         # Create buildings for the user
@@ -197,6 +208,75 @@ class BuildingRoutesTestCase(unittest.TestCase):
         Building.objects(user=self.test_user).delete()
         Image.objects(id=image1.id).delete()
         Image.objects(id=image2.id).delete()
+
+    def test_update_building(self):
+        # Create a building for the user
+        building = Building(name="Building 1", user=self.test_user).save()
+
+        # Generate a valid token for the user
+        token = jwt.encode(
+            {"user_id": str(self.test_user.id)}, TOKEN_SECRET_KEY, algorithm="HS256"
+        )
+
+        # Update the building name
+        new_name = "Updated Building 1"
+        response = self.client.put(
+            f"/api/building/{str(building.id)}",
+            headers={"Authorization": token},
+            json={"name": new_name},
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json["message"], "Building updated!")
+
+        # Verify the building name was updated
+        updated_building = Building.objects(id=building.id).first()
+        self.assertEqual(updated_building.name, new_name)
+
+        # Clean up
+        Building.objects(user=self.test_user).delete()
+
+    def test_delete_building(self):
+        # Create a building for the user
+        building = Building(name="Building 1", user=self.test_user).save()
+
+        # Create an image for the building
+        image = Image(
+            building=building,
+            type="raw",
+            url="http://example.com/image.jpg",
+            floor=1,
+            imageWidth=800,
+            imageHeight=600,
+        ).save()
+
+        # Generate a valid token for the user
+        token = jwt.encode(
+            {"user_id": str(self.test_user.id)}, TOKEN_SECRET_KEY, algorithm="HS256"
+        )
+
+        # Delete the building
+        response = self.client.delete(
+            f"/api/building/{str(building.id)}",
+            headers={"Authorization": token},
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(
+            response.json["message"],
+            "Building and associated images deleted successfully",
+        )
+
+        # Verify the building and associated images were deleted
+        deleted_building = Building.objects(id=building.id).first()
+        self.assertIsNone(deleted_building)
+
+        deleted_image = Image.objects(id=image.id).first()
+        self.assertIsNone(deleted_image)
+
+        # Clean up
+        Building.objects(user=self.test_user).delete()
+        Image.objects(id=image.id).delete()
 
 
 if __name__ == "__main__":

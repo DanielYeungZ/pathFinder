@@ -14,6 +14,7 @@ def handle_errors(f):
         except jwt.InvalidTokenError:
             return jsonify({"message": "Invalid token"}), 401
         except Exception as e:
+            print("e====>", e)
             return jsonify({"message": "An error occurred", "error": str(e)}), 500
 
     return decorated_function
