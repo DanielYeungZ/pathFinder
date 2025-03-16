@@ -60,7 +60,7 @@ def saveData(image, roboflowData):
 
     predictions = roboflowData.get("predictions")
     for prediction in predictions:
-        print("prediction====>", prediction)
+        # print("prediction====>", prediction)
         anchor = Anchor(
             image=image,
             x=prediction.get("x"),
@@ -71,7 +71,7 @@ def saveData(image, roboflowData):
             classType=prediction.get("class"),
             classId=prediction.get("class_id"),
             detectionId=prediction.get("detection_id"),
-            tags=prediction.get("tags"),
+            tagData=prediction.get("tags"),
         )
         anchor.save()
     return

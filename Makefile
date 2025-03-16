@@ -23,6 +23,9 @@ testImage:
 
 testImagePath:
 	PYTHONWARNINGS=ignore python -m unittest discover -s ./tests -p "testImage.py" -k "test_calculate_path_success"
+
+testImageUpload:
+	PYTHONWARNINGS=ignore python -m unittest discover -s ./tests -p "testImage.py" -k "test_upload_real_image_success"
 	
 testBuilding:
 	PYTHONWARNINGS=ignore python3 -m unittest ./tests/testBuilding.py -v

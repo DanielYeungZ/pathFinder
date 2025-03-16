@@ -15,6 +15,14 @@ from .imageModel import Image
 from models import Building
 
 
+class Tag(EmbeddedDocument):
+    text = StringField(max_length=100, required=True)
+    x = FloatField(max_length=100)
+    y = FloatField(max_length=100)
+    width = FloatField(max_length=100)
+    height = FloatField(max_length=100)
+
+
 # Define the User model (Document)
 class Anchor(Document):
     image = ReferenceField(Image, required=True)
@@ -33,6 +41,7 @@ class Anchor(Document):
     tags = ListField(
         StringField(max_length=100), default=list
     )  # Set default value to an empty list
+    tagData = ListField(EmbeddedDocumentField(Tag), default=list)
 
     def save(self, *args, **kwargs):
         if not self.createdAt:
@@ -45,6 +54,7 @@ class Anchor(Document):
             "id": str(self.id),
             "image": str(self.image.id) if self.image else None,
             "tags": self.tags,
+            "tagData": self.tagData,
             "x": self.x,
             "y": self.y,
             "width": self.width,

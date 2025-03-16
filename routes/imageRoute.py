@@ -113,11 +113,11 @@ def filter_text_in_roboflow_boxes(text_data, roboflow_boxes, image_width, image_
             if (
                 box["class"] == "classroom"
                 and box["x"] <= x <= box["x"] + box["width"]
-                and box["x"] <= x + width <= box["x"] + box["width"]
+                # and box["x"] <= x + width <= box["x"] + box["width"]
                 and box["y"] <= y <= box["y"] + box["height"]
-                and box["y"] <= y + height <= box["y"] + box["height"]
+                # and box["y"] <= y + height <= box["y"] + box["height"]
             ):
-                box.setdefault("tags", []).append(text_item["text"])
+                box.setdefault("tags", []).append(text_item)
                 # break
     for box in roboflow_boxes:
         if box["class"] == "classroom":
