@@ -371,6 +371,7 @@ def download_image(current_user):
 @token_required
 def get_image_with_anchors(current_user, image_id):
     try:
+
         image = Image.objects(id=image_id).first()
 
         if not image:
@@ -381,6 +382,7 @@ def get_image_with_anchors(current_user, image_id):
         image_data = image.to_dict()
         image_data["anchors"] = [anchor.to_dict() for anchor in anchors]
         image_data["building"] = image.building.to_dict()
+        # print(f"Image data: {image_data}")
         return jsonify({"image": image_data}), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 500

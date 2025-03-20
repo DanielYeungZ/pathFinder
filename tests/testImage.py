@@ -1,9 +1,10 @@
 import unittest
 import warnings
+import logging
 from flask import Flask
 from services.auth import token_required
 from routes.imageRoute import image_bp
-from models import User, Building, Image, Anchor
+from models import User, Building, Image, Anchor, Tag
 import jwt
 from config import TOKEN_SECRET_KEY
 from mongoengine import connect, disconnect
@@ -12,6 +13,10 @@ import os
 from config import (
     S3_BUCKET,
 )
+
+# # Configure logging
+# logging.basicConfig(level=logging.INFO)
+# logger = logging.getLogger(__name__)
 
 
 class ImageRoutesTestCase(unittest.TestCase):
@@ -120,7 +125,7 @@ class ImageRoutesTestCase(unittest.TestCase):
         self.assertEqual(response.status_code, 401)
         self.assertIn("Token is missing", response.json["message"])
 
-    def test_get_image_with_anchors(self):
+    def test_get_image_with_anchors_2(self):
         # Create an image for the building
         image = Image(
             building=self.test_building,
@@ -134,6 +139,15 @@ class ImageRoutesTestCase(unittest.TestCase):
 
         # Create anchors for the image
         anchor1 = Anchor(image=image, label="Anchor 1", x=100.0, y=200.0)
+        anchor1.tagData = [
+            Tag(
+                text="MEN",
+                x=0.7616557478904724,
+                y=0.7039927244186401,
+                width=0.015559792518615723,
+                height=0.007955033332109451,
+            ),
+        ]
         anchor2 = Anchor(image=image, label="Anchor 2", x=300.0, y=400.0)
         anchor1.save()
         anchor2.save()
@@ -142,7 +156,8 @@ class ImageRoutesTestCase(unittest.TestCase):
         response = self.client.get(
             f"/api/image/{str(image.id)}", headers={"Authorization": self.valid_token}
         )
-
+        # logger.debug("response: %s", response.json)
+        # print(f"response data: {response.json}")
         self.assertEqual(response.status_code, 200)
         self.assertIn("image", response.json)
         self.assertEqual(response.json["image"]["id"], str(image.id))
@@ -157,6 +172,7 @@ class ImageRoutesTestCase(unittest.TestCase):
         anchor_labels = [
             anchor["label"] for anchor in response.json["image"]["anchors"]
         ]
+
         self.assertIn("Anchor 1", anchor_labels)
         self.assertIn("Anchor 2", anchor_labels)
 

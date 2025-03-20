@@ -54,7 +54,7 @@ class Anchor(Document):
             "id": str(self.id),
             "image": str(self.image.id) if self.image else None,
             "tags": self.tags,
-            "tagData": self.tagData,
+            "tagData": [tag.to_mongo() for tag in self.tagData],
             "x": self.x,
             "y": self.y,
             "width": self.width,
