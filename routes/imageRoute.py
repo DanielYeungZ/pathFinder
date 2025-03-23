@@ -101,6 +101,62 @@ def convert_normalized_to_pixel(normalized_coords, image_width, image_height):
     }
 
 
+def convert_roboflow_bbox(roboflow_box):
+    """Convert Roboflow bbox from center format to (xmin, ymin, xmax, ymax)."""
+    x_center, y_center, width, height = (
+        roboflow_box["x"],
+        roboflow_box["y"],
+        roboflow_box["width"],
+        roboflow_box["height"],
+    )
+    xmin = x_center - (width / 2)
+    ymin = y_center - (height / 2)
+    xmax = x_center + (width / 2)
+    ymax = y_center + (height / 2)
+    return xmin, ymin, xmax, ymax
+
+
+def convert_textract_bbox(textract_box, image_width, image_height):
+    """Convert Textract bbox from normalized format to pixel format."""
+    xmin = textract_box["x"] * image_width
+    ymin = textract_box["y"] * image_height
+    xmax = xmin + (textract_box["width"] * image_width)
+    ymax = ymin + (textract_box["height"] * image_height)
+    return xmin, ymin, xmax, ymax
+
+
+def is_text_inside_object(textract_box, roboflow_box):
+    """Check if the text bounding box is inside the object bounding box."""
+    tx_min, ty_min, tx_max, ty_max = textract_box
+    rx_min, ry_min, rx_max, ry_max = roboflow_box
+
+    return (
+        rx_min <= tx_min <= rx_max
+        and ry_min <= ty_min <= ry_max
+        and rx_min <= tx_max <= rx_max
+        and ry_min <= ty_max <= ry_max
+    )
+
+
+def filter_text_in_roboflow_boxes_v2(
+    text_data, roboflow_boxes, image_width, image_height
+):
+    for text_item in text_data:
+        textract_box = convert_textract_bbox(text_item, image_width, image_height)
+        # print(f"Text item: {text_item}")
+        for box in roboflow_boxes:
+            roboflow_box = convert_roboflow_bbox(box)
+
+            # print(f"Box: {box}")
+            if is_text_inside_object(textract_box, roboflow_box):
+                box.setdefault("tags", []).append(text_item)
+                # break
+    # for box in roboflow_boxes:
+    #     if box["class"] == "classroom":
+    #         detail_logs(f"Box: {box}")
+    return
+
+
 def filter_text_in_roboflow_boxes(text_data, roboflow_boxes, image_width, image_height):
     filtered_text = []
     for text_item in text_data:
@@ -165,7 +221,7 @@ def upload_image(current_user):
             text_data = extract_text_and_coordinates(textract_response)
             detail_logs(f"Textract response: {text_data}")
 
-            filter_text_in_roboflow_boxes(
+            filter_text_in_roboflow_boxes_v2(
                 text_data, roboflow_data["predictions"], image_width, image_height
             )
         # print(f"Textract response: {text_data}")
