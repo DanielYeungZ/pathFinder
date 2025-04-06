@@ -15,19 +15,44 @@ from config import (
     S3_BUCKET,
 )
 import requests
+from colorama import Fore, Style, init
+
+init(autoreset=True)
+
 
 # # Configure logging
 # logging.basicConfig(level=logging.INFO)
 # logger = logging.getLogger(__name__)
+class ColorFormatter(logging.Formatter):
+    # Define color mappings for log levels
+    COLORS = {
+        logging.DEBUG: Fore.BLUE,
+        logging.INFO: Fore.GREEN,
+        logging.WARNING: Fore.YELLOW,
+        logging.ERROR: Fore.RED,
+        logging.CRITICAL: Fore.MAGENTA,
+    }
+
+    def format(self, record):
+        # Add color to the log level name
+        level_color = self.COLORS.get(record.levelno, "")
+        record.levelname = f"{level_color}{record.levelname}{Style.RESET_ALL}"
+        # Format the message
+        return super().format(record)
 
 
 # Configure logging with timestamps
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s - %(levelname)s - %(message)s",
-    datefmt="%Y-%m-%d %H:%M:%S",
+handler = logging.StreamHandler()
+handler.setFormatter(
+    ColorFormatter(
+        "%(asctime)s - %(levelname)s - %(message)s",
+        datefmt="%Y-%m-%d %H:%M:%S",
+    )
 )
+
 logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
+logger.addHandler(handler)
 
 
 class ImageRoutesTestCase(unittest.TestCase):
@@ -151,11 +176,11 @@ class ImageRoutesTestCase(unittest.TestCase):
             duration = end_time - start_time  # Calculate the duration
 
             logger.info(
-                f"Finished upload_image test in {duration:.2f} seconds: {response.text}"
+                f"Finished upload_image test in {duration:.2f} seconds: {response.json()}"
             )
 
         self.assertEqual(response.status_code, 200)
-        self.assertIn("File uploaded successfully", response.json["message"])
+        self.assertIn("File uploaded successfully", response.json()["message"])
 
     @unittest.skip("Skipping this test for now")
     def test_upload_local_real_image_success(self):
@@ -348,6 +373,20 @@ class ImageRoutesTestCase(unittest.TestCase):
         self.assertIsNone(deleted_anchor)
 
 
+class ColoredTextTestResult(unittest.TextTestResult):
+    def addSuccess(self, test):
+        super().addSuccess(test)
+        self.stream.write(Fore.GREEN + "✔ " + str(test) + Style.RESET_ALL + "\n")
+
+    def addFailure(self, test, err):
+        super().addFailure(test, err)
+        self.stream.write(Fore.RED + "✘ " + str(test) + Style.RESET_ALL + "\n")
+
+    def addError(self, test, err):
+        super().addError(test, err)
+        self.stream.write(Fore.YELLOW + "⚠ " + str(test) + Style.RESET_ALL + "\n")
+
+
 if __name__ == "__main__":
     warnings.filterwarnings("ignore")
-    unittest.main(verbosity=2)
+    unittest.main(verbosity=1)
