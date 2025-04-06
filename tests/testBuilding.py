@@ -1,5 +1,6 @@
 import unittest
 import warnings
+import logging
 from flask import Flask
 from routes.buildingRoute import building_bp
 from models import User, Building, Image
@@ -8,6 +9,15 @@ from config import TOKEN_SECRET_KEY
 from mongoengine import connect, disconnect
 from utils.common import printMsg
 from bson import ObjectId
+
+
+# Configure logging with timestamps
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s - %(levelname)s - %(message)s",
+    datefmt="%Y-%m-%d %H:%M:%S",
+)
+logger = logging.getLogger(__name__)
 
 
 class BuildingRoutesTestCase(unittest.TestCase):

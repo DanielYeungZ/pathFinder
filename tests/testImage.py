@@ -10,6 +10,7 @@ from config import TOKEN_SECRET_KEY
 from mongoengine import connect, disconnect
 from io import BytesIO
 import os
+import time
 from config import (
     S3_BUCKET,
 )
@@ -17,6 +18,15 @@ from config import (
 # # Configure logging
 # logging.basicConfig(level=logging.INFO)
 # logger = logging.getLogger(__name__)
+
+
+# Configure logging with timestamps
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s - %(levelname)s - %(message)s",
+    datefmt="%Y-%m-%d %H:%M:%S",
+)
+logger = logging.getLogger(__name__)
 
 
 class ImageRoutesTestCase(unittest.TestCase):
@@ -95,12 +105,17 @@ class ImageRoutesTestCase(unittest.TestCase):
                 "type": "raw",
                 "floor": 1,
             }
+            start_time = time.time()
             response = self.client.post(
                 "/api/upload_image",
                 headers={"Authorization": self.valid_token},
                 data=data,
                 content_type="multipart/form-data",
             )
+            end_time = time.time()
+            duration = end_time - start_time  # Calculate the duration
+            logger.info(f"Finished upload_image test in {duration:.2f} seconds")
+
         self.assertEqual(response.status_code, 200)
         self.assertIn("File uploaded successfully", response.json["message"])
 
