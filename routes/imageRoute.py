@@ -24,7 +24,7 @@ from config import (
     AWS_DEFAULT_REGION,
     S3_BUCKET,
 )
-from services.roboflow import analysis, analysisV2, saveData
+from services.roboflow import analysis, saveData
 from factory import celery
 
 

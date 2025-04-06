@@ -3,13 +3,14 @@ import json
 import tempfile
 import time
 from config import ROBOFLOW_API_KEY, ROBOFLOW_MODEL
-from roboflow import Roboflow
+
+# from roboflow import Roboflow
 from services.utils import logs, detail_logs
 from models import Anchor
 
-rf = Roboflow(api_key=ROBOFLOW_API_KEY)
-project = rf.workspace().project("indoor-map")
-model = project.version("18").model
+# rf = Roboflow(api_key=ROBOFLOW_API_KEY)
+# project = rf.workspace().project("indoor-map")
+# model = project.version("18").model
 
 # Define retry parameters
 MAX_RETRIES = 3
@@ -77,15 +78,15 @@ def saveData(image, roboflowData):
     return
 
 
-def analysisV2(file_content):
-    try:
-        with tempfile.NamedTemporaryFile(delete=False) as temp_file:
-            temp_file.write(file_content)
-            temp_file_path = temp_file.name
-        result = model.predict(temp_file_path, confidence=40, overlap=30).json()
+# def analysisV2(file_content):
+#     try:
+#         with tempfile.NamedTemporaryFile(delete=False) as temp_file:
+#             temp_file.write(file_content)
+#             temp_file_path = temp_file.name
+#         result = model.predict(temp_file_path, confidence=40, overlap=30).json()
 
-        logs(f"Roboflow V2 upload result: {json.dumps(result, indent=4)}")
-        return result
-    except Exception as e:
-        logs(f"Exception occurred during analysisV2: {e}")
-        return None
+#         logs(f"Roboflow V2 upload result: {json.dumps(result, indent=4)}")
+#         return result
+#     except Exception as e:
+#         logs(f"Exception occurred during analysisV2: {e}")
+#         return None
