@@ -136,7 +136,7 @@ class ImageRoutesTestCase(unittest.TestCase):
                 "http://flask-env.eba-63h3zsef.us-east-2.elasticbeanstalk.com/api/upload_image",
                 headers={
                     "Authorization": self.valid_token,
-                    "Content-Type": "multipart/form-data",
+                    # "Content-Type": "multipart/form-data",
                 },
                 data=data,
                 files={
