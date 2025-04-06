@@ -51,7 +51,7 @@ def upload_to_s3(file, s3_key):
     try:
         s3_client.upload_fileobj(file, S3_BUCKET, s3_key)
         s3_url = f"https://{S3_BUCKET}.s3.amazonaws.com/{s3_key}"
-        print(f"\n Uploaded to S3: {s3_url} ")
+        detail_logs(f"\n Uploaded to S3: {s3_url} ")
         return s3_url
     except Exception as e:
         raise Exception(f"Failed to upload to S3: {str(e)}")
