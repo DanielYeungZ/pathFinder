@@ -33,5 +33,8 @@ testImageGet:
 testBuilding:
 	PYTHONWARNINGS=ignore python3 -m unittest ./tests/testBuilding.py -v
 
+testGunicorn:
+	gunicorn main:app
+
 run:
 	python3 main.py
