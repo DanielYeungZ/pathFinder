@@ -36,6 +36,14 @@ Follow these steps to set up the project:
    make run
    ```
 
+
+6. **useful command**:
+   ```bash
+   pip freeze > requirements.txt    
+   python --version
+   eb logs
+   ```
+
 ## Project Structure
 
 ```bash
