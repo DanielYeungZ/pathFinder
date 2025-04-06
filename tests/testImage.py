@@ -14,6 +14,7 @@ import time
 from config import (
     S3_BUCKET,
 )
+import requests
 
 # # Configure logging
 # logging.basicConfig(level=logging.INFO)
@@ -115,6 +116,73 @@ class ImageRoutesTestCase(unittest.TestCase):
             end_time = time.time()
             duration = end_time - start_time  # Calculate the duration
             logger.info(f"Finished upload_image test in {duration:.2f} seconds")
+
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("File uploaded successfully", response.json["message"])
+
+    def test_upload_eb_real_image_success(self):
+        image_path = os.path.join(
+            os.path.dirname(__file__), "assets", "ENG_Floor1_4.jpg"
+        )
+
+        with open(image_path, "rb") as img:
+            data = {
+                "building_id": str(self.test_building.id),
+                "type": "raw",
+                "floor": 1,
+            }
+            start_time = time.time()
+            response = requests.post(
+                "http://flask-env.eba-63h3zsef.us-east-2.elasticbeanstalk.com/api/upload_image",
+                headers={
+                    "Authorization": self.valid_token,
+                    "Content-Type": "multipart/form-data",
+                },
+                data=data,
+                files={
+                    "file": (
+                        "ENG_Floor1_4.jpg",
+                        img,
+                        "image/jpeg",
+                    ),
+                },
+            )
+            end_time = time.time()
+            duration = end_time - start_time  # Calculate the duration
+
+            logger.info(
+                f"Finished upload_image test in {duration:.2f} seconds: {response.text}"
+            )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("File uploaded successfully", response.json["message"])
+
+    @unittest.skip("Skipping this test for now")
+    def test_upload_local_real_image_success(self):
+        image_path = os.path.join(
+            os.path.dirname(__file__), "assets", "ENG_Floor1_4.jpg"
+        )
+
+        with open(image_path, "rb") as img:
+            data = {
+                "file": (img, "ENG_Floor1_4.jpg"),
+                "building_id": str(self.test_building.id),
+                "type": "raw",
+                "floor": 1,
+            }
+            start_time = time.time()
+            response = self.client.post(
+                "http://http://127.0.0.1:8000/api/upload_image",
+                headers={"Authorization": self.valid_token},
+                data=data,
+                content_type="multipart/form-data",
+            )
+            end_time = time.time()
+            duration = end_time - start_time  # Calculate the duration
+
+            logger.info(
+                f"Finished upload_image test in {duration:.2f} seconds: {response.get_json()}"
+            )
 
         self.assertEqual(response.status_code, 200)
         self.assertIn("File uploaded successfully", response.json["message"])

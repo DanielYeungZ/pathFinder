@@ -27,6 +27,9 @@ testImagePath:
 testImageUpload:
 	PYTHONWARNINGS=ignore python -m unittest discover -s ./tests -p "testImage.py" -k "test_upload_real_image_success"
 
+testEBImageUpload:
+	PYTHONWARNINGS=ignore python -m unittest discover -s ./tests -p "testImage.py" -k "test_upload_eb_real_image_success"
+
 testImageGet:
 	PYTHONWARNINGS=ignore python -m unittest discover -s ./tests -p "testImage.py" -k "test_get_image_with_anchors_2"
 
