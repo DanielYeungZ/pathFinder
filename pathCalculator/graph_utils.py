@@ -33,7 +33,7 @@ def extract_edges(binary_image):
 
 def create_graph(binary_image):
     graph = nx.Graph()
-    print("init graph=====>")
+    print("init graphssss=====>")
 
     rows, cols = binary_image.shape
     max_edges = rows * cols * 4
