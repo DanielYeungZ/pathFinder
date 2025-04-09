@@ -48,33 +48,45 @@ def process_chunk(binary_image, start_row, end_row):
 
 
 def create_graph(binary_image):
-    rows, cols = binary_image.shape
-    chunk_size = rows // 8
-    graphs = []
-    futures = []
+    try:
+        rows, cols = binary_image.shape
+        chunk_size = max(
+            1, rows // 8
+        )  # Divide the image into 8 chunks or more if rows are small
+        graphs = []
+        futures = []
 
-    with ThreadPoolExecutor() as executor:
-        for i in range(0, rows, chunk_size):
-            start_row = i
-            end_row = min(i + chunk_size, rows)
+        path_logs(
+            f"create_graph=====> Starting graph creation with {rows} rows and {cols} cols"
+        )
 
-            # Add 1 extra row overlap unless it's the last chunk
-            if end_row < rows:
-                end_row += 1
+        with ThreadPoolExecutor() as executor:
+            for i in range(0, rows, chunk_size):
+                start_row = i
+                end_row = min(i + chunk_size, rows)
 
-            futures.append(
-                executor.submit(process_chunk, binary_image, start_row, end_row)
-            )
+                # Add 1 extra row overlap unless it's the last chunk
+                if end_row < rows:
+                    end_row += 1
 
-        for future in futures:
-            graphs.append(future.result())
+                futures.append(
+                    executor.submit(process_chunk, binary_image, start_row, end_row)
+                )
 
-    # Combine subgraphs
-    combined_graph = nx.Graph()
-    for g in graphs:
-        combined_graph.add_edges_from(g.edges(data=True))
+            for future in futures:
+                graphs.append(future.result())
 
-    return combined_graph
+        path_logs(
+            f"create_graph=====> Finished processing all chunks, total graphs: {len(graphs)}"
+        )
+        # Combine subgraphs
+        combined_graph = nx.Graph()
+        for g in graphs:
+            combined_graph.add_edges_from(g.edges(data=True))
+
+        return combined_graph
+    except Exception as e:
+        path_logs(f"Error in create_graph: {str(e)}")
 
     # def create_graph(binary_image):
     rows, cols = binary_image.shape
