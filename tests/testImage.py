@@ -161,6 +161,7 @@ class ImageRoutesTestCase(unittest.TestCase):
                 "http://flask-env.eba-63h3zsef.us-east-2.elasticbeanstalk.com/api/upload_image",
                 headers={
                     "Authorization": self.valid_token,
+                    "Origin": "http://localhost:3000",
                     # "Content-Type": "multipart/form-data",
                 },
                 data=data,
@@ -312,7 +313,10 @@ class ImageRoutesTestCase(unittest.TestCase):
         }
         response = requests.post(
             "http://flask-env.eba-63h3zsef.us-east-2.elasticbeanstalk.com/api/calculate_path",
-            headers={"Authorization": self.valid_token},
+            headers={
+                "Authorization": self.valid_token,
+                "Origin": "http://localhost:3000",
+            },
             json=data,
         )
 

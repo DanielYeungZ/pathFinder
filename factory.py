@@ -30,18 +30,6 @@ def create_app():
     app.config["MAX_CONTENT_LENGTH"] = 50 * 1024 * 1024  # 16 MB
     app.config.from_object(Config)
 
-    # Handle preflight requests explicitly (optional)
-    @app.after_request
-    def after_request(response):
-        response.headers.add("Access-Control-Allow-Origin", "*")
-        response.headers.add(
-            "Access-Control-Allow-Headers", "Content-Type,Authorization"
-        )
-        response.headers.add(
-            "Access-Control-Allow-Methods", "GET,POST,PUT,DELETE,OPTIONS"
-        )
-        return response
-
     return app
 
 
