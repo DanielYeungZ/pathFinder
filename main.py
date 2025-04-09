@@ -14,14 +14,14 @@ connect(
 )
 
 # Apply CORS to each blueprint explicitly
-CORS(user_bp, resources={r"/*": {"origins": "*", "allow_headers": "*", "methods": "*"}})
-CORS(
-    building_bp,
-    resources={r"/*": {"origins": "*", "allow_headers": "*", "methods": "*"}},
-)
-CORS(
-    image_bp, resources={r"/*": {"origins": "*", "allow_headers": "*", "methods": "*"}}
-)
+# CORS(user_bp, resources={r"/*": {"origins": "*", "allow_headers": "*", "methods": "*"}})
+# CORS(
+#     building_bp,
+#     resources={r"/*": {"origins": "*", "allow_headers": "*", "methods": "*"}},
+# )
+# CORS(
+#     image_bp, resources={r"/*": {"origins": "*", "allow_headers": "*", "methods": "*"}}
+# )
 
 app.register_blueprint(user_bp, url_prefix="/api")
 app.register_blueprint(building_bp, url_prefix="/api")

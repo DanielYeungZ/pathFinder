@@ -26,7 +26,17 @@ def make_celery(app):
 def create_app():
     app = Flask(__name__)
     # Allow all cross-origin requests
-    CORS(app, resources={r"/*": {"origins": "*", "allow_headers": "*", "methods": "*"}})
+    CORS(
+        app,
+        resources={
+            r"/*": {
+                "origins": "*",
+                "allow_headers": "*",
+                # "allow_headers": ["Content-Type", "Authorization", "*"],
+                "methods": "*",
+            }
+        },
+    )
     app.config["MAX_CONTENT_LENGTH"] = 50 * 1024 * 1024  # 16 MB
     app.config.from_object(Config)
 

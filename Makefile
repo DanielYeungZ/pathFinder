@@ -21,6 +21,9 @@ test:
 testImage:
 	PYTHONWARNINGS=ignore python3 -m unittest ./tests/testImage.py -v
 
+testUser:
+	PYTHONWARNINGS=ignore python3 -m unittest ./tests/testUser.py -v
+
 testImagePath:
 	PYTHONWARNINGS=ignore python -m unittest discover -s ./tests -p "testImage.py" -k "test_calculate_path_success"
 
