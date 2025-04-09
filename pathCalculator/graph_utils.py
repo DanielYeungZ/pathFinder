@@ -10,9 +10,9 @@ from numba import njit, prange
 @njit(parallel=True)
 def extract_edges(binary_image):
     rows, cols = binary_image.shape
-    max_edges = rows * cols * 4  # upper bound
-    path_logs(f"max_edges=====> {max_edges}")
-    edges = []
+    max_edges = rows * cols * 10  # upper bound
+
+    edges = np.empty((max_edges, 4), dtype=np.int32)
     count = 0
 
     for row in range(rows):
@@ -28,7 +28,6 @@ def extract_edges(binary_image):
                         edges[count] = (row, col, nr, nc)
                         count += 1
 
-    path_logs(f"count=====> {count}")
     return edges[:count]
 
 
@@ -36,7 +35,12 @@ def create_graph(binary_image):
     graph = nx.Graph()
     print("init graph=====>")
 
+    rows, cols = binary_image.shape
+    max_edges = rows * cols * 4
+    print(f"max_edges=====> {max_edges}")
+
     edges = extract_edges(binary_image)
+    print(f"extract_edges=====> {len(edges)} edges")
 
     for r1, c1, r2, c2 in edges:
         graph.add_edge((r1, c1), (r2, c2), weight=1)
