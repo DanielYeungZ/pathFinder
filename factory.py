@@ -30,7 +30,7 @@ def create_app():
         app,
         resources={r"/*": {"origins": "*"}},
         supports_credentials=True,
-        allow_headers=["Content-Type", "Authorization", "Origin"],
+        allow_headers="*",
         methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     )
     app.config["MAX_CONTENT_LENGTH"] = 50 * 1024 * 1024  # 16 MB
