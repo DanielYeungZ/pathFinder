@@ -51,7 +51,7 @@ def create_graph(binary_image):
     try:
         rows, cols = binary_image.shape
         chunk_size = max(
-            1, rows // 8
+            1, rows // 12
         )  # Divide the image into 8 chunks or more if rows are small
         graphs = []
         futures = []
