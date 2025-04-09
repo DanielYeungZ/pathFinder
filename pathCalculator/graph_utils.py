@@ -1,27 +1,65 @@
 import networkx as nx
 import math
 from services import path_logs
+from concurrent.futures import ThreadPoolExecutor
+
+# def create_graph(binary_image):
+
+#     graph = nx.Graph()
+#     path_logs(f"init graph=====> ")
+#     rows, cols = binary_image.shape
+
+#     for row in range(rows):
+#         for col in range(cols):
+#             if binary_image[row, col] == 255:
+#                 for dx, dy in [(-1, 0), (1, 0), (0, -1), (0, 1)]:
+#                     neighbor_row, neighbor_col = row + dx, col + dy
+#                     if 0 <= neighbor_row < rows and 0 <= neighbor_col < cols:
+#                         if binary_image[neighbor_row, neighbor_col] == 255:
+#                             path_logs(f"add_edge graph=====> ")
+#                             graph.add_edge(
+#                                 (row, col), (neighbor_row, neighbor_col), weight=1
+#                             )
+#     path_logs(f"graph=====> {len(graph.nodes())}")
+#     return graph
 
 
-def create_graph(binary_image):
-
+def process_chunk(binary_image, start_row, end_row):
     graph = nx.Graph()
-    path_logs(f"init graph=====> ")
     rows, cols = binary_image.shape
 
-    for row in range(rows):
+    for row in range(start_row, end_row):
         for col in range(cols):
             if binary_image[row, col] == 255:
                 for dx, dy in [(-1, 0), (1, 0), (0, -1), (0, 1)]:
                     neighbor_row, neighbor_col = row + dx, col + dy
                     if 0 <= neighbor_row < rows and 0 <= neighbor_col < cols:
                         if binary_image[neighbor_row, neighbor_col] == 255:
-                            path_logs(f"add_edge graph=====> ")
                             graph.add_edge(
                                 (row, col), (neighbor_row, neighbor_col), weight=1
                             )
-    path_logs(f"graph=====> {len(graph.nodes())}")
     return graph
+
+
+def create_graph(binary_image):
+    rows, cols = binary_image.shape
+    chunk_size = rows // 4  # Divide into 4 chunks
+    graphs = []
+
+    with ThreadPoolExecutor() as executor:
+        futures = [
+            executor.submit(process_chunk, binary_image, i, i + chunk_size)
+            for i in range(0, rows, chunk_size)
+        ]
+        for future in futures:
+            graphs.append(future.result())
+
+    # Combine all subgraphs
+    combined_graph = nx.Graph()
+    for g in graphs:
+        combined_graph.add_edges_from(g.edges(data=True))
+
+    return combined_graph
 
 
 def shortest_path(graph, start, end):
