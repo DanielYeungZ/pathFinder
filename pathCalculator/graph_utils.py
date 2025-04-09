@@ -43,6 +43,35 @@ def process_chunk(binary_image, start_row, end_row):
 
 def create_graph(binary_image):
     rows, cols = binary_image.shape
+    chunk_size = rows // 4
+    graphs = []
+    futures = []
+
+    with ThreadPoolExecutor() as executor:
+        for i in range(0, rows, chunk_size):
+            start_row = i
+            end_row = min(i + chunk_size, rows)
+
+            # Add 1 extra row overlap unless it's the last chunk
+            if end_row < rows:
+                end_row += 1
+
+            futures.append(
+                executor.submit(process_chunk, binary_image, start_row, end_row)
+            )
+
+        for future in futures:
+            graphs.append(future.result())
+
+    # Combine subgraphs
+    combined_graph = nx.Graph()
+    for g in graphs:
+        combined_graph.add_edges_from(g.edges(data=True))
+
+    return combined_graph
+
+    # def create_graph(binary_image):
+    rows, cols = binary_image.shape
     chunk_size = rows // 4  # Divide into 4 chunks
     graphs = []
 
