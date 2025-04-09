@@ -12,7 +12,7 @@ def extract_edges(binary_image):
     rows, cols = binary_image.shape
     max_edges = rows * cols * 4  # upper bound
     path_logs(f"max_edges=====> {max_edges}")
-    edges = np.empty((max_edges, 4), dtype=np.int32)
+    edges = []
     count = 0
 
     for row in range(rows):
@@ -28,6 +28,7 @@ def extract_edges(binary_image):
                         edges[count] = (row, col, nr, nc)
                         count += 1
 
+    path_logs(f"count=====> {count}")
     return edges[:count]
 
 
