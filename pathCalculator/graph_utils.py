@@ -6,37 +6,63 @@ from services import path_logs
 from concurrent.futures import ProcessPoolExecutor, ThreadPoolExecutor, as_completed
 from numba import njit, prange
 
-# def create_graph(binary_image):
 
-#     graph = nx.Graph()
-#     path_logs(f"init graph=====> ")
-#     rows, cols = binary_image.shape
+@njit(parallel=True)
+def extract_edges(binary_image):
+    rows, cols = binary_image.shape
+    max_edges = rows * cols * 4  # upper bound
+    edges = np.empty((max_edges, 4), dtype=np.int32)
+    count = 0
 
-#     for row in range(rows):
-#         for col in range(cols):
-#             if binary_image[row, col] == 255:
-#                 for dx, dy in [(-1, 0), (1, 0), (0, -1), (0, 1)]:
-#                     neighbor_row, neighbor_col = row + dx, col + dy
-#                     if 0 <= neighbor_row < rows and 0 <= neighbor_col < cols:
-#                         if binary_image[neighbor_row, neighbor_col] == 255:
-#                             path_logs(f"add_edge graph=====> ")
-#                             graph.add_edge(
-#                                 (row, col), (neighbor_row, neighbor_col), weight=1
-#                             )
-#     path_logs(f"graph=====> {len(graph.nodes())}")
-#     return graph
+    for row in range(rows):
+        for col in range(cols):
+            if binary_image[row, col] == 255:
+                for dx, dy in [(-1, 0), (1, 0), (0, -1), (0, 1)]:
+                    nr, nc = row + dx, col + dy
+                    if (
+                        0 <= nr < rows
+                        and 0 <= nc < cols
+                        and binary_image[nr, nc] == 255
+                    ):
+                        edges[count] = (row, col, nr, nc)
+                        count += 1
+
+    return edges[:count]
 
 
-def get_edges_for_row(row, binary_image, rows, cols):
-    edges = []
-    for col in range(cols):
-        if binary_image[row, col] == 255:
-            for dx, dy in [(-1, 0), (1, 0), (0, -1), (0, 1)]:
-                neighbor_row, neighbor_col = row + dx, col + dy
-                if 0 <= neighbor_row < rows and 0 <= neighbor_col < cols:
-                    if binary_image[neighbor_row, neighbor_col] == 255:
-                        edges.append(((row, col), (neighbor_row, neighbor_col)))
-    return edges
+def create_graph(binary_image):
+    graph = nx.Graph()
+    print("init graph=====>")
+
+    edges = extract_edges(binary_image)
+
+    for r1, c1, r2, c2 in edges:
+        graph.add_edge((r1, c1), (r2, c2), weight=1)
+        # optionally: print("add_edge graph=====>")
+
+    print(f"finish graph=====> {len(graph.nodes())}")
+    return graph
+
+
+def create_graph_origin(binary_image):
+
+    graph = nx.Graph()
+    path_logs(f"init graph=====> ")
+    rows, cols = binary_image.shape
+
+    for row in range(rows):
+        for col in range(cols):
+            if binary_image[row, col] == 255:
+                for dx, dy in [(-1, 0), (1, 0), (0, -1), (0, 1)]:
+                    neighbor_row, neighbor_col = row + dx, col + dy
+                    if 0 <= neighbor_row < rows and 0 <= neighbor_col < cols:
+                        if binary_image[neighbor_row, neighbor_col] == 255:
+                            path_logs(f"add_edge graph=====> ")
+                            graph.add_edge(
+                                (row, col), (neighbor_row, neighbor_col), weight=1
+                            )
+    path_logs(f"graph=====> {len(graph.nodes())}")
+    return graph
 
 
 def create_graph_fast(binary_image):
@@ -95,7 +121,7 @@ def extract_edges(binary_image):
     return edges[:count]
 
 
-def create_graph(binary_image):
+def create_graph_numba(binary_image):
     """
     Creates a graph from a binary image using Numba-accelerated edge extraction.
 
@@ -127,6 +153,18 @@ def create_graph(binary_image):
     except Exception as e:
         path_logs(f"Error in create_graph_numba: {str(e)}")
         return None
+
+
+def get_edges_for_row(row, binary_image, rows, cols):
+    edges = []
+    for col in range(cols):
+        if binary_image[row, col] == 255:
+            for dx, dy in [(-1, 0), (1, 0), (0, -1), (0, 1)]:
+                neighbor_row, neighbor_col = row + dx, col + dy
+                if 0 <= neighbor_row < rows and 0 <= neighbor_col < cols:
+                    if binary_image[neighbor_row, neighbor_col] == 255:
+                        edges.append(((row, col), (neighbor_row, neighbor_col)))
+    return edges
 
 
 def create_graph_v1(binary_image):
