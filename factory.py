@@ -28,17 +28,24 @@ def create_app():
     # Allow all cross-origin requests
     CORS(
         app,
-        resources={
-            r"/*": {
-                "origins": "*",
-                "allow_headers": "*",
-                # "allow_headers": ["Content-Type", "Authorization", "*"],
-                "methods": "*",
-            }
-        },
+        resources={r"/*": {"origins": "*"}},
+        supports_credentials=True,
+        allow_headers=["Content-Type", "Authorization", "Origin"],
+        methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     )
     app.config["MAX_CONTENT_LENGTH"] = 50 * 1024 * 1024  # 16 MB
     app.config.from_object(Config)
+
+    # @app.after_request
+    # def after_request(response):
+    #     response.headers.add("Access-Control-Allow-Origin", "*")
+    #     response.headers.add(
+    #         "Access-Control-Allow-Headers", "Content-Type, Authorization, Origin"
+    #     )
+    #     response.headers.add(
+    #         "Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS"
+    #     )
+    #     return response
 
     return app
 
