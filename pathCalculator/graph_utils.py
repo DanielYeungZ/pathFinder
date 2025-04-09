@@ -57,21 +57,17 @@ def extract_edges(binary_image):
 def create_graph(binary_image):
     try:
         graph = nx.Graph()
-        print("init graphssss=====>")
-
-        rows, cols = binary_image.shape
-        max_edges = rows * cols * 4
-        print(f"max_edges=====> {max_edges}")
+        path_logs("init graphssss=====>")
 
         edges = extract_edges(binary_image)
-        print(f"extract_edges=====> {len(edges)} edges")
+        path_logs(f"extract_edges=====> {len(edges)} edges")
 
         graph.add_edges_from(
             ((r1, c1), (r2, c2), {"weight": 1}) for r1, c1, r2, c2 in edges
         )
         # optionally: print("add_edge graph=====>")
 
-        print(f"finish graph=====> {len(graph.nodes())}")
+        path_logs(f"finish graph=====> {len(graph.nodes())}")
         return graph
     except Exception as e:
         path_logs(f"Error creating graph: {e}")
