@@ -3,11 +3,9 @@ import math
 
 import numpy as np
 from services import path_logs
-from numba import njit
 
 
-@njit
-def extract_edges(binary_image):
+def extract_edges_v2(binary_image):
     rows, cols = binary_image.shape
     max_edges = rows * cols * 10  # upper bound
 
@@ -26,6 +24,32 @@ def extract_edges(binary_image):
                     ):
                         edges[count] = (row, col, nr, nc)
                         count += 1
+
+    return edges[:count]
+
+
+def extract_edges(binary_image):
+    rows, cols = binary_image.shape
+    max_edges = rows * cols * 4  # maximum 4 neighbors per white pixel
+
+    edges = np.empty((max_edges, 4), dtype=np.int32)
+    count = 0
+
+    # Get all white pixel coordinates
+    white_rows, white_cols = np.where(binary_image == 255)
+
+    # 4-connected neighbors
+    directions = [(-1, 0), (1, 0), (0, -1), (0, 1)]
+
+    for i in range(len(white_rows)):
+        row = white_rows[i]
+        col = white_cols[i]
+
+        for dx, dy in directions:
+            nr, nc = row + dx, col + dy
+            if 0 <= nr < rows and 0 <= nc < cols and binary_image[nr, nc] == 255:
+                edges[count] = (row, col, nr, nc)
+                count += 1
 
     return edges[:count]
 
