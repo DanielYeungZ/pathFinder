@@ -11,6 +11,7 @@ from numba import njit, prange
 def extract_edges(binary_image):
     rows, cols = binary_image.shape
     max_edges = rows * cols * 4  # upper bound
+    path_logs(f"max_edges=====> {max_edges}")
     edges = np.empty((max_edges, 4), dtype=np.int32)
     count = 0
 
