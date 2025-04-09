@@ -1,5 +1,7 @@
 import networkx as nx
 import math
+
+import numpy as np
 from services import path_logs
 from concurrent.futures import ProcessPoolExecutor, ThreadPoolExecutor, as_completed
 
@@ -37,6 +39,38 @@ def get_edges_for_row(row, binary_image, rows, cols):
 
 
 def create_graph(binary_image):
+    graph = nx.Graph()
+    path_logs("init graph=====>")
+
+    # Get coordinates of white pixels
+    white_pixels = np.argwhere(binary_image == 255)
+
+    directions = [(-1, 0), (1, 0), (0, -1), (0, 1)]
+    rows, cols = binary_image.shape
+    try:
+        for dx, dy in directions:
+            shifted = white_pixels + np.array([dx, dy])
+            valid = (
+                (shifted[:, 0] >= 0)
+                & (shifted[:, 0] < rows)
+                & (shifted[:, 1] >= 0)
+                & (shifted[:, 1] < cols)
+            )
+
+            original_valid = white_pixels[valid]
+            shifted_valid = shifted[valid]
+
+            mask = binary_image[shifted_valid[:, 0], shifted_valid[:, 1]] == 255
+            for (r1, c1), (r2, c2) in zip(original_valid[mask], shifted_valid[mask]):
+                graph.add_edge((r1, c1), (r2, c2), weight=1)
+
+        path_logs(f"graph=====> {len(graph.nodes())}")
+        return graph
+    except Exception as e:
+        path_logs(f"Error in create_graph: {e}")
+        return None
+
+    # def create_graph(binary_image):
     try:
         graph = nx.Graph()
         path_logs("init graph=====>")
