@@ -25,25 +25,31 @@ from concurrent.futures import ThreadPoolExecutor
 
 
 def process_chunk(binary_image, start_row, end_row):
-    graph = nx.Graph()
-    rows, cols = binary_image.shape
-
-    for row in range(start_row, end_row):
-        for col in range(cols):
-            if binary_image[row, col] == 255:
-                for dx, dy in [(-1, 0), (1, 0), (0, -1), (0, 1)]:
-                    neighbor_row, neighbor_col = row + dx, col + dy
-                    if 0 <= neighbor_row < rows and 0 <= neighbor_col < cols:
-                        if binary_image[neighbor_row, neighbor_col] == 255:
-                            graph.add_edge(
-                                (row, col), (neighbor_row, neighbor_col), weight=1
-                            )
+    path_logs(f"process_chunk=====> start_row: {start_row}, end_row: {end_row}")
+    try:
+        graph = nx.Graph()
+        rows, cols = binary_image.shape
+        for row in range(start_row, end_row):
+            for col in range(cols):
+                if binary_image[row, col] == 255:
+                    for dx, dy in [(-1, 0), (1, 0), (0, -1), (0, 1)]:
+                        neighbor_row, neighbor_col = row + dx, col + dy
+                        if 0 <= neighbor_row < rows and 0 <= neighbor_col < cols:
+                            if binary_image[neighbor_row, neighbor_col] == 255:
+                                graph.add_edge(
+                                    (row, col), (neighbor_row, neighbor_col), weight=1
+                                )
+    except Exception as e:
+        path_logs(f"Error in process_chunk for rows {start_row}-{end_row}: {str(e)}")
+    path_logs(
+        f"process_chunk graph=====> start_row: {start_row}, end_row: {end_row}, nodes: {len(graph.nodes())}"
+    )
     return graph
 
 
 def create_graph(binary_image):
     rows, cols = binary_image.shape
-    chunk_size = rows // 4
+    chunk_size = rows // 8
     graphs = []
     futures = []
 
