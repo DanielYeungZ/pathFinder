@@ -57,7 +57,7 @@ class UserRoutesTestCase(unittest.TestCase):
 
     def test_real_user_login_success(self):
         response = requests.post(
-            "http://flask-env.eba-63h3zsef.us-east-2.elasticbeanstalk.com/api/user/login",
+            "http://flask-env.eba-qjhqw3t2.us-east-2.elasticbeanstalk.com/api/user/login",
             headers={
                 "Authorization": self.valid_token,
                 "Content-Type": "application/json",
