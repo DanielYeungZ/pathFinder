@@ -55,23 +55,27 @@ def extract_edges(binary_image):
 
 
 def create_graph(binary_image):
-    graph = nx.Graph()
-    print("init graphssss=====>")
+    try:
+        graph = nx.Graph()
+        print("init graphssss=====>")
 
-    rows, cols = binary_image.shape
-    max_edges = rows * cols * 4
-    print(f"max_edges=====> {max_edges}")
+        rows, cols = binary_image.shape
+        max_edges = rows * cols * 4
+        print(f"max_edges=====> {max_edges}")
 
-    edges = extract_edges(binary_image)
-    print(f"extract_edges=====> {len(edges)} edges")
+        edges = extract_edges(binary_image)
+        print(f"extract_edges=====> {len(edges)} edges")
 
-    graph.add_edges_from(
-        ((r1, c1), (r2, c2), {"weight": 1}) for r1, c1, r2, c2 in edges
-    )
-    # optionally: print("add_edge graph=====>")
+        graph.add_edges_from(
+            ((r1, c1), (r2, c2), {"weight": 1}) for r1, c1, r2, c2 in edges
+        )
+        # optionally: print("add_edge graph=====>")
 
-    print(f"finish graph=====> {len(graph.nodes())}")
-    return graph
+        print(f"finish graph=====> {len(graph.nodes())}")
+        return graph
+    except Exception as e:
+        path_logs(f"Error creating graph: {e}")
+        return None
 
 
 def create_graph_origin(binary_image):
@@ -79,51 +83,23 @@ def create_graph_origin(binary_image):
     graph = nx.Graph()
     path_logs(f"init graph=====> ")
     rows, cols = binary_image.shape
-
-    for row in range(rows):
-        for col in range(cols):
-            if binary_image[row, col] == 255:
-                for dx, dy in [(-1, 0), (1, 0), (0, -1), (0, 1)]:
-                    neighbor_row, neighbor_col = row + dx, col + dy
-                    if 0 <= neighbor_row < rows and 0 <= neighbor_col < cols:
-                        if binary_image[neighbor_row, neighbor_col] == 255:
-                            path_logs(f"add_edge graph=====> ")
-                            graph.add_edge(
-                                (row, col), (neighbor_row, neighbor_col), weight=1
-                            )
-    path_logs(f"graph=====> {len(graph.nodes())}")
-    return graph
-
-    graph = nx.Graph()
-    path_logs("init graph=====>")
-
-    # Get coordinates of white pixels
-    white_pixels = np.argwhere(binary_image == 255)
-
-    directions = [(-1, 0), (1, 0), (0, -1), (0, 1)]
-    rows, cols = binary_image.shape
     try:
-        for dx, dy in directions:
-            shifted = white_pixels + np.array([dx, dy])
-            valid = (
-                (shifted[:, 0] >= 0)
-                & (shifted[:, 0] < rows)
-                & (shifted[:, 1] >= 0)
-                & (shifted[:, 1] < cols)
-            )
-
-            original_valid = white_pixels[valid]
-            shifted_valid = shifted[valid]
-
-            mask = binary_image[shifted_valid[:, 0], shifted_valid[:, 1]] == 255
-            for (r1, c1), (r2, c2) in zip(original_valid[mask], shifted_valid[mask]):
-                graph.add_edge((r1, c1), (r2, c2), weight=1)
-
+        for row in range(rows):
+            for col in range(cols):
+                if binary_image[row, col] == 255:
+                    for dx, dy in [(-1, 0), (1, 0), (0, -1), (0, 1)]:
+                        neighbor_row, neighbor_col = row + dx, col + dy
+                        if 0 <= neighbor_row < rows and 0 <= neighbor_col < cols:
+                            if binary_image[neighbor_row, neighbor_col] == 255:
+                                path_logs(f"add_edge graph=====> ")
+                                graph.add_edge(
+                                    (row, col), (neighbor_row, neighbor_col), weight=1
+                                )
         path_logs(f"graph=====> {len(graph.nodes())}")
         return graph
     except Exception as e:
-        path_logs(f"Error in create_graph: {e}")
-        return No
+        path_logs(f"Error creating graph: {e}")
+        return None
 
 
 def shortest_path(graph, start, end):
