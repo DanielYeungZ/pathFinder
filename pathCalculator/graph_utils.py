@@ -67,7 +67,7 @@ def create_graph(binary_image):
 
                 # Add 1 extra row overlap unless it's the last chunk
                 if end_row < rows:
-                    end_row += 1
+                    end_row = min(end_row + 1, rows)
 
                 futures.append(
                     executor.submit(process_chunk, binary_image, start_row, end_row)
