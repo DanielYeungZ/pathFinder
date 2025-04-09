@@ -36,19 +36,6 @@ def create_app():
     app.config["MAX_CONTENT_LENGTH"] = 50 * 1024 * 1024  # 16 MB
     app.config.from_object(Config)
 
-    # Add headers to every response
-    @app.after_request
-    def after_request(response):
-        response.headers.add("Access-Control-Allow-Origin", "*")
-        response.headers.add(
-            "Access-Control-Allow-Headers",
-            "Content-Type, Authorization, Origin, Accept, X-Requested-With, Access-Control-Request-Method, Access-Control-Request-Headers",
-        )
-        response.headers.add(
-            "Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS"
-        )
-        return response
-
     return app
 
 
