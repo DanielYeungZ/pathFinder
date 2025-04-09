@@ -1,5 +1,6 @@
 from flask import Flask, jsonify
 from mongoengine import connect
+from flask_cors import CORS
 from routes import user_bp, building_bp
 from routes.imageRoute import image_bp
 from factory import app, celery
@@ -10,6 +11,16 @@ connect(
     tls=True,
     tlsAllowInvalidCertificates=True,
     uuidRepresentation="standard",
+)
+
+# Apply CORS to each blueprint explicitly
+CORS(user_bp, resources={r"/*": {"origins": "*", "allow_headers": "*", "methods": "*"}})
+CORS(
+    building_bp,
+    resources={r"/*": {"origins": "*", "allow_headers": "*", "methods": "*"}},
+)
+CORS(
+    image_bp, resources={r"/*": {"origins": "*", "allow_headers": "*", "methods": "*"}}
 )
 
 app.register_blueprint(user_bp, url_prefix="/api")
