@@ -1,4 +1,4 @@
-from config import DEBUG, DETAIL_DEBUG
+from config import DEBUG, DETAIL_DEBUG, PATH_DEBUG
 from colorama import Fore, Style, init
 
 
@@ -14,6 +14,13 @@ def logs(message):
 
 def detail_logs(message):
     if DETAIL_DEBUG:
+        print("\n" + Fore.GREEN + str(message) + Style.RESET_ALL + "\n")
+
+    return
+
+
+def path_logs(message):
+    if PATH_DEBUG:
         print("\n" + Fore.GREEN + str(message) + Style.RESET_ALL + "\n")
 
     return

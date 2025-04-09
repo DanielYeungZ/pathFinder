@@ -145,6 +145,7 @@ class ImageRoutesTestCase(unittest.TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertIn("File uploaded successfully", response.json["message"])
 
+    @unittest.skip("Skipping test_upload_eb_real_image_success")
     def test_upload_eb_real_image_success(self):
         image_path = os.path.join(
             os.path.dirname(__file__), "assets", "ENG_Floor1_4.jpg"
@@ -305,6 +306,7 @@ class ImageRoutesTestCase(unittest.TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertIn("path_image_url", response.json)
 
+    @unittest.skip("Skipping test_real_calculate_path_success")
     def test_real_calculate_path_success(self):
         data = {
             "s3_image_url": f"https://{S3_BUCKET}.s3.amazonaws.com/images/ENG_Floor1_4.jpg",

@@ -7,7 +7,7 @@ import numpy as np
 import requests
 from io import BytesIO
 from models import Building, Image, Anchor, Path
-from services import token_required, logs, handle_errors, detail_logs
+from services import token_required, logs, handle_errors, detail_logs, path_logs
 from pathCalculator.graph_utils import create_graph, shortest_path
 from pathCalculator.image_processing import (
     read_image,
@@ -282,6 +282,10 @@ def calculate_path(current_user):
     if not s3_image_url or not start_point or not end_point:
         return jsonify({"error": "Missing required parameters"}), 400
 
+    path_logs(
+        f"calculate_path=====> Start point: {start_point}, End point: {end_point}"
+    )
+
     try:
 
         image_doc = Image.objects(url=s3_image_url).first()
@@ -306,14 +310,22 @@ def calculate_path(current_user):
 
     # Download image from S3
     try:
+        path_logs(f"calculate_path=====> Downloading image from S3: {s3_image_url}")
+
         s3_key = s3_image_url.split(f"https://{S3_BUCKET}.s3.amazonaws.com/")[-1]
         image_stream = BytesIO()
         s3_client.download_fileobj(S3_BUCKET, s3_key, image_stream)
         if image_stream.getbuffer().nbytes == 0:
             return jsonify({"error": "Downloaded image is empty"}), 500
 
+        path_logs(f"calculate_path=====> done downloading image from S3")
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
+    path_logs(
+        f"calculate_path=====> Image stream size: {image_stream.getbuffer().nbytes} bytes"
+    )
+
     image_stream.seek(0)
     image_array = np.frombuffer(image_stream.read(), dtype=np.uint8)
     if image_array.size == 0:
@@ -325,24 +337,29 @@ def calculate_path(current_user):
     # Process image
     gray_image = convert_to_grayscale(image)
     binary_image = apply_threshold(gray_image, threshold_value=170)
+    path_logs(f"calculate_path=====> Binary image shape: {binary_image.shape}")
 
     # Create graph and calculate the shortest path
     graph = create_graph(binary_image)
     path = shortest_path(graph, start_point, end_point)
+    path_logs(f"calculate_path=====> shortest path: {len(path)}")
 
     # Visualize path
     path_image = visualize_path(image, path, is_original=True)
+    path_logs(f"calculate_path=====> Visualize path: {path_image.shape}")
 
     # Save to memory
     _, img_encoded = cv2.imencode(".jpg", path_image)
     img_buffer = BytesIO(img_encoded.tobytes())
     output_s3_key = f"processed_images/path_result.jpg"
+    path_logs(f"calculate_path=====> Uploading path image to S3: {output_s3_key}")
 
     # Upload result back to S3
     s3_client.upload_fileobj(
         img_buffer, S3_BUCKET, output_s3_key, ExtraArgs={"ContentType": "image/jpeg"}
     )
     output_s3_url = f"https://{S3_BUCKET}.s3.amazonaws.com/{output_s3_key}"
+    path_logs(f"calculate_path=====> Uploaded path image to S3: {output_s3_url}")
 
     # TODO: save & update related information in database (image & request)
 

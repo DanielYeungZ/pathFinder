@@ -17,3 +17,4 @@ ROBOFLOW_MODEL = "indoor-map/21"
 
 DEBUG = True
 DETAIL_DEBUG = False
+PATH_DEBUG = True
