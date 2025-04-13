@@ -57,6 +57,7 @@ s3transfer==0.10.0
 semantic-version==2.10.0
 setuptools==78.1.0
 six==1.17.0
+supervisor==4.2.5
 termcolor==2.5.0
 tomli==2.2.1
 tqdm==4.67.1
