@@ -44,6 +44,42 @@ Follow these steps to set up the project:
    eb logs
    ```
 
+7. **deploymenty command**:
+   ```bash
+   eb init -p python-3.11 flask-api
+   eb create flask-api-env
+
+   mv Procfile.web Procfile
+   eb deploy flask-api-env
+   mv Procfile Procfile.web
+   
+   eb init -p python-3.11 flask-celery-worker
+
+   eb create celery-worker-env --tier worker
+
+   mv Procfile.worker Procfile
+   rm -rf .ebextensions
+   cp -r .ebextensions-worker .ebextensions
+
+   b deploy celery-worker-env
+
+   # Restore
+   mv Procfile Procfile.worker
+   rm -rf .ebextensions
+   ```
+
+   ```
+   mv Procfile.web Procfile
+   eb deploy flask-api-env
+   mv Procfile Procfile.web
+
+   # Celery Worker
+   mv Procfile.worker Procfile
+   rm -rf .ebextensions && cp -r .ebextensions-worker .ebextensions
+   eb deploy celery-worker-env
+   mv Procfile Procfile.worker && rm -rf .ebextensions
+```
+
 ## Project Structure
 
 ```bash
@@ -66,3 +102,5 @@ pathFinder/
 ├── main.py
 └── requirements.txt
 ```
+
+
