@@ -1,1 +1,1 @@
-web: /usr/bin/supervisord -c /etc/supervisord.conf
+web: gunicorn main:app --timeout 3000
