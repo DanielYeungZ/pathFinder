@@ -49,9 +49,9 @@ Follow these steps to set up the project:
    eb init -p python-3.11 flask-api
    eb create flask-api-env
 
-   mv Procfile.web Procfile
-   eb deploy flask-api-env
-   mv Procfile Procfile.web
+   mv Procfile.api Procfile
+   eb deploy flask-api-env --staged
+   mv Procfile Procfile.api
    
    eb init -p python-3.11 flask-celery-worker
 
@@ -61,7 +61,7 @@ Follow these steps to set up the project:
    rm -rf .ebextensions
    cp -r .ebextensions-worker .ebextensions
 
-   b deploy celery-worker-env
+   eb deploy celery-worker-env --staged
 
    # Restore
    mv Procfile Procfile.worker
@@ -69,17 +69,24 @@ Follow these steps to set up the project:
    ```
 
    ```
-   mv Procfile.web Procfile
-   eb deploy flask-api-env
-   mv Procfile Procfile.web
+   eb init -p python-3.11 flask-api
+   mv Procfile.api Procfile
+   git add -A
+   eb deploy flask-api-env --staged
+   mv Procfile Procfile.api
 
    # Celery Worker
+   eb init -p python-3.11 flask-celery-worker
    mv Procfile.worker Procfile
    rm -rf .ebextensions && cp -r .ebextensions-worker .ebextensions
-   eb deploy celery-worker-env
+   git add -A
+   eb deploy celery-worker-env --staged
    mv Procfile Procfile.worker && rm -rf .ebextensions
-```
-
+   ```
+   ```
+   git add -A
+   eb deploy --staged
+   ```
 ## Project Structure
 
 ```bash
