@@ -6,8 +6,9 @@ from flask_cors import CORS
 
 
 def make_celery(app):
+    # print("Creating Celery instance...", app.config)
     celery = Celery(
-        app.import_name,
+        "tasks",
         backend=app.config["CELERY_RESULT_BACKEND"],
         broker=app.config["CELERY_BROKER_URL"],
     )

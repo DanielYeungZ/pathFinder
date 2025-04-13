@@ -17,7 +17,7 @@ from models import Building, Image
 class Path(Document):
     image = ReferenceField(Image, required=True)
     path = DictField()
-    url = StringField(required=True, max_length=200)
+    url = StringField(required=False, max_length=200)
     start = ListField(IntField(), required=True)
     end = ListField(IntField(), required=True)
     createdAt = DateTimeField(default=lambda: datetime.now(timezone.utc))
@@ -33,3 +33,24 @@ class Path(Document):
         return super(Path, self).save(*args, **kwargs)
 
     meta = {"indexes": [{"fields": ["expireAt"], "expireAfterSeconds": 0}]}
+
+    def to_dict(self):
+        return {
+            "id": str(self.id),
+            "image": (
+                str(self.image.id) if self.image else None
+            ),  # Serialize the image reference
+            "path": self.path,  # Serialize the path dictionary
+            "url": self.url,  # Serialize the URL
+            "start": self.start,  # Serialize the start point list
+            "end": self.end,  # Serialize the end point list
+            "createdAt": (
+                self.createdAt.isoformat() if self.createdAt else None
+            ),  # Serialize datetime
+            "updatedAt": (
+                self.updatedAt.isoformat() if self.updatedAt else None
+            ),  # Serialize datetime
+            "expireAt": (
+                self.expireAt.isoformat() if self.expireAt else None
+            ),  # Serialize datetime
+        }

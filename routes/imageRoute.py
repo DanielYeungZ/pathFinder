@@ -8,7 +8,7 @@ import requests
 from io import BytesIO
 from models import Building, Image, Anchor, Path
 from services import token_required, logs, handle_errors, detail_logs, path_logs
-from pathCalculator.graph_utils import create_graph, shortest_path
+from pathCalculator.graph_utils import create_graph, shortest_path, create_graph_origin
 from pathCalculator.image_processing import (
     read_image,
     convert_to_grayscale,
@@ -26,7 +26,7 @@ from config import (
 )
 from services.roboflow import analysis, saveData
 from factory import celery
-
+from datetime import datetime, timezone
 
 image_bp = Blueprint("image", __name__)
 
@@ -292,10 +292,14 @@ def calculate_path(current_user):
         if not image_doc:
             return jsonify({"error": "Image not found"}), 404
 
-        path_doc = Path.objects(start=start_point, end=end_point).first()
+        path_doc = Path.objects(
+            start=start_point,
+            end=end_point,
+            image=image_doc,
+        ).first()
 
         # download_and_process_image.delay(s3_image_url, start_point, end_point)
-        if path_doc:
+        if path_doc and path_doc.url:
             return (
                 jsonify(
                     {
@@ -362,11 +366,12 @@ def calculate_path(current_user):
     output_s3_url = f"https://{S3_BUCKET}.s3.amazonaws.com/{output_s3_key}"
     path_logs(f"calculate_path=====> Uploaded path image to S3: {output_s3_url}")
 
-    # TODO: save & update related information in database (image & request)
-
     if output_s3_url:
         path_doc = Path(
-            start=start_point, end=end_point, url=output_s3_url, image=image_doc
+            start=start_point,
+            end=end_point,
+            url=output_s3_url,
+            image=image_doc,
         )
         path_doc.save()
 
@@ -381,44 +386,153 @@ def calculate_path(current_user):
     )
 
 
-@celery.task
-def download_and_process_image(s3_image_url, start_point, end_point):
+@image_bp.route("/calculate_path_v2", methods=["POST"])
+@token_required
+def calculate_path_v2(current_user):
+    data = request.get_json()
 
-    print("celery task started====================>")
+    if not all(
+        [data, "s3_image_url" in data, "start_point" in data, "end_point" in data]
+    ):
+        return jsonify({"error": "Missing required parameters"}), 400
 
-    # Extract S3 key from URL
-    s3_key = s3_image_url.split(f"https://{S3_BUCKET}.s3.amazonaws.com/")[-1]
+    s3_image_url = data.get("s3_image_url")
+    start_point = tuple(data.get("start_point"))
+    end_point = tuple(data.get("end_point"))
 
-    # Download image from S3
-    image_stream = BytesIO()
-    s3_client.download_fileobj(S3_BUCKET, s3_key, image_stream)
-    image_stream.seek(0)
-    image_array = np.frombuffer(image_stream.read(), dtype=np.uint8)
-    image = cv2.imdecode(image_array, cv2.IMREAD_COLOR)
+    if not start_point or not end_point:
+        return jsonify({"error": "Start and end points are required"}), 400
 
-    # Process image
-    gray_image = convert_to_grayscale(image)
-    binary_image = apply_threshold(gray_image, threshold_value=170)
+    if not s3_image_url or not start_point or not end_point:
+        return jsonify({"error": "Missing required parameters"}), 400
 
-    # Create graph and calculate the shortest path
-    graph = create_graph(binary_image)
-    path = shortest_path(graph, start_point, end_point)
-
-    # Visualize path
-    path_image = visualize_path(image, path, is_original=True)
-
-    # Save to memory
-    _, img_encoded = cv2.imencode(".jpg", path_image)
-    img_buffer = BytesIO(img_encoded.tobytes())
-    output_s3_key = f"processed_images/path_result.jpg"
-
-    # Upload result back to S3
-    s3_client.upload_fileobj(
-        img_buffer, S3_BUCKET, output_s3_key, ExtraArgs={"ContentType": "image/jpeg"}
+    path_logs(
+        f"calculate_path=====> Start point: {start_point}, End point: {end_point}, image: {s3_image_url}"
     )
-    output_s3_url = f"https://{S3_BUCKET}.s3.amazonaws.com/{output_s3_key}"
 
-    return output_s3_url
+    try:
+
+        image_doc = Image.objects(url=s3_image_url).first()
+        if not image_doc:
+            return jsonify({"error": "Image not found"}), 404
+
+        path_doc = Path.objects(
+            start=start_point,
+            end=end_point,
+            image=image_doc,
+        ).first()
+
+        # download_and_process_image.delay(s3_image_url, start_point, end_point)
+        if path_doc and path_doc.url:
+            return (
+                jsonify(
+                    {
+                        "message": "Path calculated and saved successfully",
+                        "path_doc": path_doc.to_dict(),
+                        "path_image_url": path_doc.url,
+                    }
+                ),
+                200,
+            )
+        else:
+            if not path_doc:
+                path_doc = Path(
+                    start=start_point,
+                    end=end_point,
+                    image=image_doc,
+                )
+                path_doc.save()
+
+            path_logs(f"process_image=====> Path doc: {path_doc.to_dict()}")
+            task = process_image.delay(
+                path_doc.to_dict(), s3_image_url, start_point, end_point
+            )
+            return (
+                jsonify(
+                    {
+                        "message": "Path calculated and saved successfully",
+                        "path_doc": path_doc.to_dict(),
+                        "task_id": task.id,
+                    }
+                ),
+                200,
+            )
+    except Exception as e:
+        return jsonify({"image query error": str(e)}), 500
+
+
+@celery.task
+def process_image(path_doc, s3_image_url, start_point, end_point):
+    # Download image from S3
+    try:
+        path_logs(f"calculate_path=====> Downloading image from S3: {s3_image_url}")
+
+        s3_key = s3_image_url.split(f"https://{S3_BUCKET}.s3.amazonaws.com/")[-1]
+        image_stream = BytesIO()
+        s3_client.download_fileobj(S3_BUCKET, s3_key, image_stream)
+        if image_stream.getbuffer().nbytes == 0:
+            return jsonify({"error": "Downloaded image is empty"}), 500
+
+        path_logs(f"calculate_path=====> done downloading image from S3")
+
+        path_logs(
+            f"calculate_path=====> Image stream size: {image_stream.getbuffer().nbytes} bytes"
+        )
+
+        image_stream.seek(0)
+        image_array = np.frombuffer(image_stream.read(), dtype=np.uint8)
+        if image_array.size == 0:
+            return jsonify({"error": "Failed to decode image, empty buffer"}), 500
+        image = cv2.imdecode(image_array, cv2.IMREAD_COLOR)
+        if image is None:
+            return jsonify({"error": "Failed to decode image"}), 500
+
+        # Process image
+        gray_image = convert_to_grayscale(image)
+        binary_image = apply_threshold(gray_image, threshold_value=170)
+        path_logs(f"calculate_path=====> Binary image shape: {binary_image.shape}")
+
+        # Create graph and calculate the shortest path
+        graph = create_graph_origin(binary_image)
+        path_logs(f"Graph nodes: {len(graph.nodes())}")
+        path = shortest_path(graph, start_point, end_point)
+        path_logs(f"calculate_path=====> shortest path: {len(path)}")
+
+        # Visualize path
+        path_image = visualize_path(image, path, is_original=True)
+        path_logs(f"calculate_path=====> Visualize path: {path_image.shape}")
+
+        # Save to memory
+        _, img_encoded = cv2.imencode(".jpg", path_image)
+        img_buffer = BytesIO(img_encoded.tobytes())
+        output_s3_key = f"processed_images/{path_doc}.jpg"
+        path_logs(f"calculate_path=====> Uploading path image to S3: {output_s3_key}")
+
+        # Upload result back to S3
+        s3_client.upload_fileobj(
+            img_buffer,
+            S3_BUCKET,
+            output_s3_key,
+            ExtraArgs={"ContentType": "image/jpeg"},
+        )
+        output_s3_url = f"https://{S3_BUCKET}.s3.amazonaws.com/{output_s3_key}"
+        path_logs(f"calculate_path=====> Uploaded path image to S3: {output_s3_url}")
+
+        # TODO: save & update related information in database (image & request)
+
+        if output_s3_url:
+            Path.objects(id=path_doc["id"]).update_one(
+                set__url=output_s3_url,
+                set__updatedAt=datetime.now(timezone.utc),
+            )
+
+        return {
+            "status": "success",
+            "path_doc_id": path_doc["id"],
+            "output_s3_url": output_s3_url,
+        }
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 
 @image_bp.route("/download_image", methods=["GET"])
@@ -488,3 +602,31 @@ def delete_image(current_user, image_id):
         jsonify({"message": "Image and associated anchors deleted successfully"}),
         200,
     )
+
+
+@image_bp.route("/api/task_status/<task_id>", methods=["GET"])
+def task_status(task_id):
+    task = process_image.AsyncResult(task_id)
+    if task.state == "PENDING":
+        return {"status": "pending"}
+    elif task.state == "SUCCESS":
+        return {"status": "done", "result": task.result}
+    else:
+        return {"status": task.state}
+
+
+@image_bp.route("/api/path/<path_id>", methods=["GET"])
+def path_fetch(path_id):
+    try:
+
+        path = Path.objects(id=path_id).first()
+
+        if not path:
+            return jsonify({"error": "Path not found"}), 404
+
+        path_data = Path.to_dict()
+
+        # print(f"Image data: {image_data}")
+        return jsonify({"path": path_data}), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
