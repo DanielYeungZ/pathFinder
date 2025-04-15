@@ -116,6 +116,7 @@ class ImageRoutesTestCase(unittest.TestCase):
             data=data,
             content_type="multipart/form-data",
         )
+
         self.assertEqual(response.status_code, 200)
         self.assertIn("File uploaded successfully", response.json["message"])
 
@@ -306,6 +307,23 @@ class ImageRoutesTestCase(unittest.TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertIn("path_image_url", response.json)
 
+    # @unittest.skip("Skipping test_real_calculate_path_success")
+    def test_real_local_calculate_path_success(self):
+        data = {
+            "s3_image_url": f"https://{S3_BUCKET}.s3.amazonaws.com/images/ENG_Floor1_4.jpg",
+            "start_point": [0, 0],
+            "end_point": [0, 1],
+        }
+        response = self.client.post(
+            "/api/calculate_path_v2",
+            headers={"Authorization": self.valid_token},
+            json=data,
+        )
+
+        print("response:", response.json)
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("path_image_url", response.json)
+
     @unittest.skip("Skipping test_real_calculate_path_success")
     def test_real_calculate_path_success(self):
         data = {
@@ -313,6 +331,7 @@ class ImageRoutesTestCase(unittest.TestCase):
             "start_point": [0, 0],
             "end_point": [0, 1],
         }
+
         response = requests.post(
             "http://flask-env.eba-63h3zsef.us-east-2.elasticbeanstalk.com/api/calculate_path",
             headers={

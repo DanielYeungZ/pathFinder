@@ -1,4 +1,5 @@
 # celery_app.py
+import ssl
 from celery import Celery
 from flask import Flask
 from flaskConfig import Config
@@ -9,10 +10,27 @@ def make_celery(app):
     # print("Creating Celery instance...", app.config)
     celery = Celery(
         "tasks",
-        backend=app.config["CELERY_RESULT_BACKEND"],
-        broker=app.config["CELERY_BROKER_URL"],
+        broker="rediss://pathfinding-anptdp.serverless.use2.cache.amazonaws.com:6379/0",
+        backend="rediss://pathfinding-anptdp.serverless.use2.cache.amazonaws.com:6379/0",
     )
+
+    celery.conf.broker_use_ssl = {"ssl_cert_reqs": ssl.CERT_NONE}
+    celery.conf.redis_backend_use_ssl = {"ssl_cert_reqs": ssl.CERT_NONE}
+
+    celery.conf.result_backend = (
+        "rediss://pathfinding-anptdp.serverless.use2.cache.amazonaws.com:6379/0"
+    )
+    celery.conf.task_default_queue = "{celery}"
+    celery.conf.result_backend_transport_options = {"key_prefix": "{celery}-"}
+
+    # celery.conf.redis_backend_use_ssl = {"ssl_cert_reqs": ssl.CERT_NONE}
+
+    # 🧠 Only include app.config AFTER setting the ssl parameters
     celery.conf.update(app.config)
+    print(f"app.config: {app.config}")
+
+    # celery.conf.task_key_prefix = "{celery}"
+    # celery.conf.update(app.config)
     TaskBase = celery.Task
 
     class ContextTask(TaskBase):
@@ -35,7 +53,7 @@ def create_app():
         methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     )
     app.config["MAX_CONTENT_LENGTH"] = 50 * 1024 * 1024  # 16 MB
-    app.config.from_object(Config)
+    # app.config.from_object(Config)
 
     return app
 

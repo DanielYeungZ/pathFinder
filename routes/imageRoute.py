@@ -28,6 +28,7 @@ from services.roboflow import analysis, saveData
 from factory import celery
 from datetime import datetime, timezone
 
+
 image_bp = Blueprint("image", __name__)
 
 # Configure S3
@@ -37,7 +38,6 @@ s3_client = boto3.client(
     aws_secret_access_key=S3_KEY,
     region_name=AWS_DEFAULT_REGION,
 )
-
 # Configure Textract
 textract_client = boto3.client(
     "textract",
@@ -345,7 +345,7 @@ def calculate_path(current_user):
 
     # Create graph and calculate the shortest path
     graph = create_graph(binary_image)
-    print(f"Graph nodes: {len(graph.nodes())}")
+    path_logs(f"Graph node====> {len(graph.nodes())}")
     path = shortest_path(graph, start_point, end_point)
     path_logs(f"calculate_path=====> shortest path: {len(path)}")
 
@@ -423,7 +423,8 @@ def calculate_path_v2(current_user):
         ).first()
 
         # download_and_process_image.delay(s3_image_url, start_point, end_point)
-        if path_doc and path_doc.url:
+        useCache = False
+        if path_doc and path_doc.url and useCache:
             return (
                 jsonify(
                     {
@@ -443,10 +444,19 @@ def calculate_path_v2(current_user):
                 )
                 path_doc.save()
 
-            path_logs(f"process_image=====> Path doc: {path_doc.to_dict()}")
-            task = process_image.delay(
-                path_doc.to_dict(), s3_image_url, start_point, end_point
+            path_logs(
+                f"process_image new=====> Path doc ID: {str(path_doc.id)}, "
+                f"S3 Image URL: {s3_image_url}, "
+                f"Start Point: {start_point}, "
+                f"End Point: {end_point}"
             )
+
+            # task = process_image.delay("123", "123", "123", "123")
+            path_dict = path_doc.to_dict()
+            task = process_image.delay(path_dict, s3_image_url, start_point, end_point)
+            path_logs(f"task DONE=====>")
+
+            path_logs(f"task=====> {task}")
             return (
                 jsonify(
                     {
@@ -458,6 +468,7 @@ def calculate_path_v2(current_user):
                 200,
             )
     except Exception as e:
+        path_logs(f"e=====>{e}")
         return jsonify({"image query error": str(e)}), 500
 
 
@@ -604,7 +615,7 @@ def delete_image(current_user, image_id):
     )
 
 
-@image_bp.route("/api/task_status/<task_id>", methods=["GET"])
+@image_bp.route("/task_status/<task_id>", methods=["GET"])
 def task_status(task_id):
     task = process_image.AsyncResult(task_id)
     if task.state == "PENDING":
@@ -615,7 +626,7 @@ def task_status(task_id):
         return {"status": task.state}
 
 
-@image_bp.route("/api/path/<path_id>", methods=["GET"])
+@image_bp.route("/path/<path_id>", methods=["GET"])
 def path_fetch(path_id):
     try:
 
