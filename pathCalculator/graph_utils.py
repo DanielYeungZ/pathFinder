@@ -87,7 +87,6 @@ def create_graph_origin(binary_image):
                         neighbor_row, neighbor_col = row + dx, col + dy
                         if 0 <= neighbor_row < rows and 0 <= neighbor_col < cols:
                             if binary_image[neighbor_row, neighbor_col] == 255:
-                                path_logs(f"add_edge graph=====> ")
                                 graph.add_edge(
                                     (row, col), (neighbor_row, neighbor_col), weight=1
                                 )

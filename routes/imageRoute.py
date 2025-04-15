@@ -352,7 +352,7 @@ def calculate_path(current_user):
     path_logs(f"calculate_path=====> Binary image shape: {binary_image.shape}")
 
     # Create graph and calculate the shortest path
-    graph = create_graph(binary_image)
+    graph = create_graph_origin(binary_image)
     path_logs(f"Graph node====> {len(graph.nodes())}")
     path = shortest_path(graph, start_point, end_point)
     path_logs(f"calculate_path=====> shortest path: {len(path)}")
