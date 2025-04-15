@@ -27,7 +27,9 @@ from config import (
 from services.roboflow import analysis, saveData
 from factory import celery
 from datetime import datetime, timezone
+import logging
 
+logger = logging.getLogger(__name__)
 
 image_bp = Blueprint("image", __name__)
 
@@ -327,16 +329,21 @@ def calculate_path(current_user):
         return jsonify({"error": str(e)}), 500
 
     path_logs(
-        f"calculate_path=====> Image stream size: {image_stream.getbuffer().nbytes} bytes"
+        f"calculate_pathss=====> Image stream size: {image_stream.getbuffer().nbytes} bytes"
     )
 
     image_stream.seek(0)
+    path_logs(f"calculate_path=====> Image seek")
     image_array = np.frombuffer(image_stream.read(), dtype=np.uint8)
+    path_logs(f"calculate_path=====> Image start")
     if image_array.size == 0:
         return jsonify({"error": "Failed to decode image, empty buffer"}), 500
     image = cv2.imdecode(image_array, cv2.IMREAD_COLOR)
+    path_logs(f"calculate_path=====> Image cv2 start")
     if image is None:
         return jsonify({"error": "Failed to decode image"}), 500
+
+    path_logs(f"calculate_path=====> Image done")
 
     # Process image
     gray_image = convert_to_grayscale(image)
@@ -476,7 +483,7 @@ def calculate_path_v2(current_user):
 def process_image(path_doc, s3_image_url, start_point, end_point):
     # Download image from S3
     try:
-        path_logs(f"calculate_path=====> Downloading image from S3: {s3_image_url}")
+        logging.info(f"calculate_path=====> Downloading image from S3: {s3_image_url}")
 
         s3_key = s3_image_url.split(f"https://{S3_BUCKET}.s3.amazonaws.com/")[-1]
         image_stream = BytesIO()
@@ -484,40 +491,48 @@ def process_image(path_doc, s3_image_url, start_point, end_point):
         if image_stream.getbuffer().nbytes == 0:
             return jsonify({"error": "Downloaded image is empty"}), 500
 
-        path_logs(f"calculate_path=====> done downloading image from S3")
+        logging.info(f"calculate_path=====> done downloading image from S3")
 
-        path_logs(
+        logging.info(
             f"calculate_path=====> Image stream size: {image_stream.getbuffer().nbytes} bytes"
         )
 
         image_stream.seek(0)
+        logging.info(f"calculate_path=====> Image seek")
         image_array = np.frombuffer(image_stream.read(), dtype=np.uint8)
+        logging.info(f"calculate_path=====> image_array")
         if image_array.size == 0:
             return jsonify({"error": "Failed to decode image, empty buffer"}), 500
         image = cv2.imdecode(image_array, cv2.IMREAD_COLOR)
+        logging.info(f"calculate_path=====> cv2")
         if image is None:
             return jsonify({"error": "Failed to decode image"}), 500
 
         # Process image
-        gray_image = convert_to_grayscale(image)
+        # gray_image = convert_to_grayscale(image)
+        gray_image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+
+        logging.info(f"calculate_path=====> gray_image")
         binary_image = apply_threshold(gray_image, threshold_value=170)
-        path_logs(f"calculate_path=====> Binary image shape: {binary_image.shape}")
+        logging.info(f"calculate_path=====> Binary image shape: {binary_image.shape}")
 
         # Create graph and calculate the shortest path
         graph = create_graph_origin(binary_image)
-        path_logs(f"Graph nodes: {len(graph.nodes())}")
+        logging.info(f"Graph nodes: {len(graph.nodes())}")
         path = shortest_path(graph, start_point, end_point)
-        path_logs(f"calculate_path=====> shortest path: {len(path)}")
+        logging.info(f"calculate_path=====> shortest path: {len(path)}")
 
         # Visualize path
         path_image = visualize_path(image, path, is_original=True)
-        path_logs(f"calculate_path=====> Visualize path: {path_image.shape}")
+        logging.info(f"calculate_path=====> Visualize path: {path_image.shape}")
 
         # Save to memory
         _, img_encoded = cv2.imencode(".jpg", path_image)
         img_buffer = BytesIO(img_encoded.tobytes())
         output_s3_key = f"processed_images/{path_doc}.jpg"
-        path_logs(f"calculate_path=====> Uploading path image to S3: {output_s3_key}")
+        logging.info(
+            f"calculate_path=====> Uploading path image to S3: {output_s3_key}"
+        )
 
         # Upload result back to S3
         s3_client.upload_fileobj(
@@ -527,7 +542,7 @@ def process_image(path_doc, s3_image_url, start_point, end_point):
             ExtraArgs={"ContentType": "image/jpeg"},
         )
         output_s3_url = f"https://{S3_BUCKET}.s3.amazonaws.com/{output_s3_key}"
-        path_logs(f"calculate_path=====> Uploaded path image to S3: {output_s3_url}")
+        logging.info(f"calculate_path=====> Uploaded path image to S3: {output_s3_url}")
 
         # TODO: save & update related information in database (image & request)
 

@@ -13,27 +13,41 @@ def make_celery(app):
     # print("Creating Celery instance...", app.config)
     celery = Celery(
         "tasks",
-        broker="rediss://pathfinding-anptdp.serverless.use2.cache.amazonaws.com:6379/0",
-        backend="rediss://pathfinding-anptdp.serverless.use2.cache.amazonaws.com:6379/0",
+        broker="sqs://",
+        backend=None,
     )
 
-    celery.conf.broker_use_ssl = {"ssl_cert_reqs": ssl.CERT_NONE}
-    celery.conf.redis_backend_use_ssl = {"ssl_cert_reqs": ssl.CERT_NONE}
+    # Configure SQS specific settings
+    celery.conf.broker_transport_options = {
+        "region": "us-east-2",
+        "visibility_timeout": 3600,
+        "polling_interval": 1,
+        "predefined_queues": {
+            "awseb-e-gtshh7qwcu-stack-AWSEBWorkerQueue-oshBAqIyywHJ": {
+                "url": "https://sqs.us-east-2.amazonaws.com/774305616102/awseb-e-gtshh7qwcu-stack-AWSEBWorkerQueue-oshBAqIyywHJ"
+            }
+        },
+    }
 
-    celery.conf.result_backend = (
-        "rediss://pathfinding-anptdp.serverless.use2.cache.amazonaws.com:6379/0"
+    celery.conf.task_default_queue = (
+        "awseb-e-gtshh7qwcu-stack-AWSEBWorkerQueue-oshBAqIyywHJ"
     )
-    celery.conf.task_default_queue = "{celery}"
-    celery.conf.result_backend_transport_options = {"key_prefix": "{celery}-"}
+
+    # Add more logging
+    celery.conf.worker_log_format = (
+        "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+    )
+    celery.conf.worker_task_log_format = (
+        "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+    )
+    celery.conf.worker_redirect_stdouts = True
+    celery.conf.worker_redirect_stdouts_level = "DEBUG"
 
     logging.basicConfig(level=logging.INFO)
 
     # 🧠 Only include app.config AFTER setting the ssl parameters
     celery.conf.update(app.config)
     print(f"app.config: {app.config}")
-
-    # celery.conf.task_key_prefix = "{celery}"
-    # celery.conf.update(app.config)
 
     TaskBase = celery.Task
 
@@ -43,6 +57,8 @@ def make_celery(app):
                 return TaskBase.__call__(self, *args, **kwargs)
 
     celery.Task = ContextTask
+
+    # celery.autodiscover_tasks(["routes"])
     return celery
 
 

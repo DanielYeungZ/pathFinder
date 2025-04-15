@@ -74,6 +74,7 @@ Follow these steps to set up the project:
    git add -A
    eb deploy flask-api-env --staged
    mv Procfile Procfile.api
+   git add -A
 
    # Celery Worker
    eb init -p python-3.11 flask-celery-worker
@@ -82,11 +83,25 @@ Follow these steps to set up the project:
    git add -A
    eb deploy celery-worker-env --staged
    mv Procfile Procfile.worker && rm -rf .ebextensions
+   git add -A
    ```
    ```
    git add -A
    eb deploy --staged
+
+
+  eb init -p python-3.11 flask-api-prod
+   mv Procfile.api Procfile
+   git add -A
+   eb deploy Flask-api-prod-env --staged
+   mv Procfile Procfile.api
+   git add -A
+
    ```
+   worker: celery -A factory.celery worker --loglevel=info
+   web: gunicorn main:app --timeout 3000
+   pip freeze > requirements.txt
+   eb logs > worker_logs.txt    
 ## Project Structure
 
 ```bash

@@ -43,6 +43,7 @@ pathspec==0.10.1
 pillow==11.1.0
 platformdirs==4.3.6
 prompt_toolkit==3.0.50
+pycurl==7.45.6
 PyJWT==2.8.0
 pymongo==4.10.1
 pyparsing==3.2.1
