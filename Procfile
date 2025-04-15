@@ -1,1 +1,0 @@
-worker: celery -A routes.imageRoute.celery worker --loglevel=info

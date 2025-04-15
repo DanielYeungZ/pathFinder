@@ -556,6 +556,7 @@ def process_image(path_doc, s3_image_url, start_point, end_point):
             "output_s3_url": output_s3_url,
         }
     except Exception as e:
+        logging.info(f"calculate_path=====> Exception: {e}")
         return jsonify({"error": str(e)}), 500
 
 
