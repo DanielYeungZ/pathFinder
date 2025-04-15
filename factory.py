@@ -4,6 +4,9 @@ from celery import Celery
 from flask import Flask
 from flaskConfig import Config
 from flask_cors import CORS
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 def make_celery(app):
@@ -23,7 +26,7 @@ def make_celery(app):
     celery.conf.task_default_queue = "{celery}"
     celery.conf.result_backend_transport_options = {"key_prefix": "{celery}-"}
 
-    # celery.conf.redis_backend_use_ssl = {"ssl_cert_reqs": ssl.CERT_NONE}
+    logging.basicConfig(level=logging.INFO)
 
     # 🧠 Only include app.config AFTER setting the ssl parameters
     celery.conf.update(app.config)
@@ -31,6 +34,7 @@ def make_celery(app):
 
     # celery.conf.task_key_prefix = "{celery}"
     # celery.conf.update(app.config)
+
     TaskBase = celery.Task
 
     class ContextTask(TaskBase):
@@ -60,3 +64,5 @@ def create_app():
 
 app = create_app()
 celery = make_celery(app)
+
+from routes.imageRoute import process_image

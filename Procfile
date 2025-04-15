@@ -1,1 +1,1 @@
-web: gunicorn main:app --timeout 3000
+worker: celery -A factory.celery worker --loglevel=info
