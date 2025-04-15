@@ -6,7 +6,9 @@ from mongoengine import (
     DictField,
     EmbeddedDocumentField,
     DateTimeField,
+    ListField,
     IntField,
+    BinaryField,
 )
 from datetime import datetime, timezone
 from models import Building
@@ -23,8 +25,11 @@ class Image(Document):
     floor = IntField(required=True)
     imageWidth = IntField(default=None, required=False)
     imageHeight = IntField(default=None, required=False)
+    image_binary = BinaryField(required=False)
+    image_shape = ListField(IntField(), required=False)
     createdAt = DateTimeField(default=lambda: datetime.now(timezone.utc))
     updatedAt = DateTimeField(default=lambda: datetime.now(timezone.utc))
+    binary_image = ListField()
 
     def save(self, *args, **kwargs):
         if not self.createdAt:
@@ -41,6 +46,7 @@ class Image(Document):
             "floor": self.floor,
             "imageWidth": self.imageWidth,
             "imageHeight": self.imageHeight,
+            "binary_image": self.binary_image,
             "createdAt": self.createdAt.isoformat(),
             "updatedAt": self.updatedAt.isoformat(),
         }

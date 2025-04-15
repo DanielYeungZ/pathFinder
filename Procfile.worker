@@ -1,1 +1,0 @@
-worker: celery -A factory.celery worker --loglevel=debug

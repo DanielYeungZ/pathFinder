@@ -357,21 +357,6 @@ class ImageRoutesTestCase(unittest.TestCase):
         self.assertEqual(response.status_code, 400)
         self.assertIn("error", response.json)
 
-    def test_download_image_success(self):
-        response = self.client.get(
-            f"/api/download_image?s3_image_url=https://{S3_BUCKET}.s3.amazonaws.com/images/ENG_Floor1_4.jpg",
-            headers={"Authorization": self.valid_token},
-        )
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.mimetype, "image/jpeg")
-
-    def test_download_image_missing_url(self):
-        response = self.client.get(
-            "/api/download_image", headers={"Authorization": self.valid_token}
-        )
-        self.assertEqual(response.status_code, 400)
-        self.assertIn("error", response.json)
-
     def test_get_image_with_anchors(self):
         response = self.client.get(
             f"/api/image/{self.test_image.id}",

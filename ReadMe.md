@@ -78,6 +78,7 @@ Follow these steps to set up the project:
 
    # Celery Worker
    eb init -p python-3.11 flask-celery-worker
+     eb init -p python-3.11 flask-celery-worker-prod
    mv Procfile.worker Procfile
    rm -rf .ebextensions && cp -r .ebextensions-worker .ebextensions
    git add -A
@@ -98,6 +99,7 @@ Follow these steps to set up the project:
    git add -A
 
    ```
+
    worker: celery -A factory.celery worker --loglevel=info
    web: gunicorn main:app --timeout 3000
    pip freeze > requirements.txt

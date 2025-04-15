@@ -1,1 +1,1 @@
-worker: celery -A factory.celery worker --loglevel=info
+worker: celery -A routes.imageRoute.celery worker --loglevel=info

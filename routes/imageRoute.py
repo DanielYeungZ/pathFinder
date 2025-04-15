@@ -1,4 +1,5 @@
 import copy
+from bson import Binary
 from flask import Blueprint, request, jsonify, send_file
 import boto3
 import cv2
@@ -458,11 +459,8 @@ def calculate_path_v2(current_user):
                 f"End Point: {end_point}"
             )
 
-            # task = process_image.delay("123", "123", "123", "123")
             path_dict = path_doc.to_dict()
             task = process_image.delay(path_dict, s3_image_url, start_point, end_point)
-            path_logs(f"task DONE=====>")
-
             path_logs(f"task=====> {task}")
             return (
                 jsonify(
@@ -561,25 +559,6 @@ def process_image(path_doc, s3_image_url, start_point, end_point):
         return jsonify({"error": str(e)}), 500
 
 
-@image_bp.route("/download_image", methods=["GET"])
-@token_required
-def download_image(current_user):
-    s3_image_url = request.args.get("s3_image_url")
-    if not s3_image_url:
-        return jsonify({"error": "Missing s3_image_url parameter"}), 400
-
-    # Extract S3 key from URL
-    s3_key = s3_image_url.split(f"https://{S3_BUCKET}.s3.amazonaws.com/")[-1]
-    image_stream = BytesIO()
-
-    try:
-        s3_client.download_fileobj(S3_BUCKET, s3_key, image_stream)
-        image_stream.seek(0)
-        return send_file(image_stream, mimetype="image/jpeg")
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
-
-
 # Get an image with anchors by ID (GET request)
 @image_bp.route("/image/<image_id>", methods=["GET"])
 @token_required
@@ -654,5 +633,183 @@ def path_fetch(path_id):
 
         # print(f"Image data: {image_data}")
         return jsonify({"path": path_data}), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@image_bp.route("/get_binary_image", methods=["POST"])
+@token_required
+def get_binary_image(current_user):
+    try:
+        data = request.get_json()
+        if (
+            not data
+            or "image_id" not in data
+            or "start_point" not in data
+            or "end_point" not in data
+        ):
+            return jsonify({"error": "Missing required parameters"}), 400
+
+        image_id = data.get("image_id")
+        image_doc = Image.objects(id=image_id).first()
+        if not image_doc:
+            return jsonify({"error": "Image not found"}), 404
+        elif not image_doc.binary_image:
+            return (
+                jsonify(
+                    {
+                        "message": "Binary already saved successfully",
+                        "image_doc": image_doc.to_dict(),
+                    }
+                ),
+                200,
+            )
+        s3_image_url = image_doc.url
+        image_doc = Image.objects(url=s3_image_url).first()
+        if not image_doc:
+            return jsonify({"error": "Image not found"}), 404
+
+        # Download image from S3
+        s3_key = s3_image_url.split(f"https://{S3_BUCKET}.s3.amazonaws.com/")[-1]
+        image_stream = BytesIO()
+        s3_client.download_fileobj(S3_BUCKET, s3_key, image_stream)
+
+        if image_stream.getbuffer().nbytes == 0:
+            return jsonify({"error": "Downloaded image is empty"}), 500
+
+        # Process image
+        image_stream.seek(0)
+        image_array = np.frombuffer(image_stream.read(), dtype=np.uint8)
+        image = cv2.imdecode(image_array, cv2.IMREAD_COLOR)
+
+        if image is None:
+            return jsonify({"error": "Failed to decode image"}), 500
+
+        # Convert to grayscale and binary
+        gray_image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+        binary_image = apply_threshold(gray_image, threshold_value=170)
+
+        # Save binary image data to MongoDB
+        binary_image_list = binary_image.tolist()
+        image_binary = Binary(image.tobytes())
+        image_doc.update(
+            set__binary_image=binary_image_list,
+            set__image_binary=image_binary,
+            set__image_shape=image.shape,
+            set__updatedAt=datetime.now(timezone.utc),
+        )
+
+        return (
+            jsonify(
+                {
+                    "message": "Binary image saved successfully",
+                    "image_doc": image_doc.to_dict(),
+                }
+            ),
+            200,
+        )
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@image_bp.route("/calculate_and_save_path", methods=["POST"])
+@token_required
+def calculate_and_save_path(current_user):
+    try:
+        data = request.get_json()
+        if not all(
+            [data, "image_id" in data, "start_point" in data, "end_point" in data]
+        ):
+            return jsonify({"error": "Missing required parameters"}), 400
+
+        image_id = data.get("image_id")
+        start_point = tuple(data.get("start_point"))
+        end_point = tuple(data.get("end_point"))
+
+        image_doc = Image.objects(id=image_id).first()
+        if not image_doc:
+            return jsonify({"error": "Image not found"}), 404
+
+        if not image_doc.binary_image:
+            return (
+                jsonify(
+                    {
+                        "error": "Binary image not found. Please run save_binary_image first"
+                    }
+                ),
+                400,
+            )
+
+        path_doc = Path.objects(
+            start=start_point,
+            end=end_point,
+            image=image_doc,
+        ).first()
+
+        # download_and_process_image.delay(s3_image_url, start_point, end_point)
+        useCache = False
+        if path_doc and path_doc.url and useCache:
+            return (
+                jsonify(
+                    {
+                        "message": "Path calculated and saved successfully",
+                        "path_doc": path_doc.to_dict(),
+                        "path_image_url": path_doc.url,
+                    }
+                ),
+                200,
+            )
+        else:
+            if not path_doc:
+                path_doc = Path(
+                    start=start_point,
+                    end=end_point,
+                    image=image_doc,
+                )
+                path_doc.save()
+        # Create graph and calculate path
+        binary_image = np.array(image_doc.binary_image)
+        graph = create_graph_origin(binary_image)
+        path = shortest_path(graph, start_point, end_point)
+
+        # Visualize path
+        image_binary = image_doc.image_binary
+        image_shape = image_doc.image_shape
+        image = np.frombuffer(image_binary, dtype=np.uint8).reshape(image_shape)
+
+        path_image = visualize_path(image, path, is_original=True)
+        path_logs(f"calculate_path=====> Visualize path: {path_image.shape}")
+
+        # Save to memory
+        _, img_encoded = cv2.imencode(".jpg", path_image)
+        img_buffer = BytesIO(img_encoded.tobytes())
+        output_s3_key = f"processed_images/{path_doc}.jpg"
+        path_logs(f"calculate_path=====> Uploading path image to S3: {output_s3_key}")
+
+        # Upload result back to S3
+        s3_client.upload_fileobj(
+            img_buffer,
+            S3_BUCKET,
+            output_s3_key,
+            ExtraArgs={"ContentType": "image/jpeg"},
+        )
+        output_s3_url = f"https://{S3_BUCKET}.s3.amazonaws.com/{output_s3_key}"
+
+        if output_s3_url:
+            path_doc.update(
+                set__url=output_s3_url,
+                set__updatedAt=datetime.now(timezone.utc),
+            )
+        return (
+            jsonify(
+                {
+                    "message": "Path calculated and saved successfully",
+                    "path_doc": path_doc.to_dict(),
+                }
+            ),
+            200,
+        )
+
     except Exception as e:
         return jsonify({"error": str(e)}), 500

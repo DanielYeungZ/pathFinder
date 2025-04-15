@@ -1,0 +1,252 @@
+Retrieving logs...
+============= i-075f4a04c8fce5492 ==============
+----------------------------------------
+/var/log/web.stdout.log
+----------------------------------------
+Apr 15 21:41:19 ip-172-31-15-74 web[2236]: [2025-04-15 21:41:19 +0000] [2236] [INFO] Starting gunicorn 23.0.0
+Apr 15 21:41:19 ip-172-31-15-74 web[2236]: [2025-04-15 21:41:19 +0000] [2236] [INFO] Listening at: http://127.0.0.1:8000 (2236)
+Apr 15 21:41:19 ip-172-31-15-74 web[2236]: [2025-04-15 21:41:19 +0000] [2236] [INFO] Using worker: gthread
+Apr 15 21:41:19 ip-172-31-15-74 web[2273]: [2025-04-15 21:41:19 +0000] [2273] [INFO] Booting worker with pid: 2273
+
+
+----------------------------------------
+/var/log/eb-engine.log
+----------------------------------------
+2025/04/15 21:51:26.522054 [WARN] stopProcess Warning: process xray is not registered 
+2025/04/15 21:51:26.522088 [INFO] Running command: systemctl stop xray.service
+2025/04/15 21:51:26.536839 [INFO] Executing instruction: stop proxy
+2025/04/15 21:51:26.536873 [INFO] Running command: systemctl show -p PartOf httpd.service
+2025/04/15 21:51:26.551532 [WARN] deregisterProcess Warning: process httpd is not registered, skipping...
+
+2025/04/15 21:51:26.551563 [INFO] Running command: systemctl show -p PartOf nginx.service
+2025/04/15 21:51:26.563535 [INFO] Running command: systemctl is-active nginx.service
+2025/04/15 21:51:26.572795 [INFO] Running command: systemctl show -p PartOf nginx.service
+2025/04/15 21:51:26.581980 [INFO] Running command: systemctl stop nginx.service
+2025/04/15 21:51:26.787984 [INFO] Running command: systemctl disable nginx.service
+2025/04/15 21:51:27.175378 [INFO] Running command: systemctl daemon-reload
+2025/04/15 21:51:27.442859 [INFO] Running command: systemctl reset-failed
+2025/04/15 21:51:27.491563 [INFO] Executing instruction: FlipApplication
+2025/04/15 21:51:27.491587 [INFO] Fetching environment variables...
+2025/04/15 21:51:27.491753 [INFO] Purge old process...
+2025/04/15 21:51:27.491775 [INFO] Running command: systemctl stop eb-app.target
+2025/04/15 21:51:27.502580 [INFO] Running command: systemctl show -p ConsistsOf eb-app.target | cut -d= -f2
+2025/04/15 21:51:27.513254 [INFO] worker.service
+
+2025/04/15 21:51:27.513279 [INFO] deregistering process: worker
+2025/04/15 21:51:27.513292 [INFO] Running command: systemctl show -p PartOf worker.service
+2025/04/15 21:51:27.524234 [INFO] Running command: systemctl is-active worker.service
+2025/04/15 21:51:27.532307 [INFO] Running command: systemctl disable worker.service
+2025/04/15 21:51:27.781911 [INFO] Removed "/etc/systemd/system/multi-user.target.wants/worker.service".
+
+2025/04/15 21:51:27.781989 [INFO] Running command: systemctl daemon-reload
+2025/04/15 21:51:28.071774 [INFO] Running command: systemctl reset-failed
+2025/04/15 21:51:28.079922 [INFO] Running command: systemctl is-active worker.service
+2025/04/15 21:51:28.087833 [INFO] Process worker has been fully terminated
+2025/04/15 21:51:28.087849 [INFO] All processes have been fully terminated
+2025/04/15 21:51:28.087853 [INFO] Removing /var/app/current/ if it exists
+2025/04/15 21:51:28.091601 [INFO] Renaming /var/app/staging/ to /var/app/current/
+2025/04/15 21:51:28.091635 [INFO] Register application processes...
+2025/04/15 21:51:28.091639 [INFO] Registering the proc: worker
+
+2025/04/15 21:51:28.091650 [INFO] Running command: systemctl show -p PartOf worker.service
+2025/04/15 21:51:28.105062 [INFO] Running command: systemctl daemon-reload
+2025/04/15 21:51:28.309525 [INFO] Running command: systemctl reset-failed
+2025/04/15 21:51:28.317733 [INFO] Running command: systemctl is-enabled eb-app.target
+2025/04/15 21:51:28.325485 [INFO] Running command: systemctl enable eb-app.target
+2025/04/15 21:51:28.607110 [INFO] Running command: systemctl start eb-app.target
+2025/04/15 21:51:28.616889 [INFO] Running command: systemctl enable worker.service
+2025/04/15 21:51:28.849863 [INFO] Created symlink /etc/systemd/system/multi-user.target.wants/worker.service → /etc/systemd/system/worker.service.
+
+2025/04/15 21:51:28.849895 [INFO] Running command: systemctl show -p PartOf worker.service
+2025/04/15 21:51:28.860662 [INFO] Running command: systemctl is-active worker.service
+2025/04/15 21:51:28.868067 [INFO] Running command: systemctl start worker.service
+2025/04/15 21:51:28.955262 [INFO] Executing instruction: start X-Ray
+2025/04/15 21:51:28.955283 [INFO] X-Ray is not enabled.
+2025/04/15 21:51:28.955288 [INFO] Executing instruction: start proxy with new configuration
+2025/04/15 21:51:28.955310 [INFO] Running command: /usr/sbin/nginx -t -c /var/proxy/staging/nginx/nginx.conf
+2025/04/15 21:51:28.996124 [INFO] nginx: the configuration file /var/proxy/staging/nginx/nginx.conf syntax is ok
+nginx: configuration file /var/proxy/staging/nginx/nginx.conf test is successful
+
+2025/04/15 21:51:28.996474 [INFO] Running command: cp -rp /var/proxy/staging/nginx/* /etc/nginx
+2025/04/15 21:51:29.002189 [INFO] Running command: systemctl show -p PartOf nginx.service
+2025/04/15 21:51:29.025771 [INFO] Running command: systemctl daemon-reload
+2025/04/15 21:51:29.379926 [INFO] Running command: systemctl reset-failed
+2025/04/15 21:51:29.392253 [INFO] Running command: systemctl show -p PartOf nginx.service
+2025/04/15 21:51:29.412413 [INFO] Running command: systemctl is-active nginx.service
+2025/04/15 21:51:29.427014 [INFO] Running command: systemctl start nginx.service
+2025/04/15 21:51:29.583744 [INFO] Executing instruction: configureSqsd
+2025/04/15 21:51:29.588477 [INFO] get sqsd conf from cfn metadata and write into sqsd conf file ...
+2025/04/15 21:51:29.591427 [INFO] Executing instruction: startSqsd
+2025/04/15 21:51:29.591451 [INFO] Running command: systemctl show -p PartOf sqsd.service
+2025/04/15 21:51:29.604133 [INFO] Running command: systemctl is-active sqsd.service
+2025/04/15 21:51:29.613371 [INFO] Running command: systemctl start sqsd.service
+2025/04/15 21:51:37.197525 [INFO] Executing instruction: Track pids in healthd
+2025/04/15 21:51:37.197553 [INFO] This is an enhanced health env...
+2025/04/15 21:51:37.197571 [INFO] Running command: systemctl show -p ConsistsOf aws-eb.target | cut -d= -f2
+2025/04/15 21:51:37.214029 [INFO] sqsd.service cfn-hup.service nginx.service healthd.service
+
+2025/04/15 21:51:37.214063 [INFO] Running command: systemctl show -p ConsistsOf eb-app.target | cut -d= -f2
+2025/04/15 21:51:37.230780 [INFO] worker.service
+
+2025/04/15 21:51:37.231079 [INFO] Executing instruction: RunAppDeployPostDeployHooks
+2025/04/15 21:51:37.231121 [INFO] Executing platform hooks in .platform/hooks/postdeploy/
+2025/04/15 21:51:37.231140 [INFO] The dir .platform/hooks/postdeploy/ does not exist
+2025/04/15 21:51:37.231144 [INFO] Finished running scripts in /var/app/current/.platform/hooks/postdeploy
+2025/04/15 21:51:37.231151 [INFO] Executing cleanup logic
+2025/04/15 21:51:37.237308 [INFO] CommandService Response: {"status":"SUCCESS","api_version":"1.0","results":[{"status":"SUCCESS","msg":"Engine execution has succeeded.","returncode":0,"events":[{"msg":"Instance deployment used the commands in your 'Procfile' to initiate startup of your application.","timestamp":1744753882122,"severity":"INFO"},{"msg":"Instance deployment completed successfully.","timestamp":1744753897231,"severity":"INFO"}]}]}
+
+2025/04/15 21:51:37.238109 [INFO] Platform Engine finished execution on command: app-deploy
+
+2025/04/15 21:52:22.695332 [INFO] Starting...
+2025/04/15 21:52:22.695920 [INFO] Starting EBPlatform-PlatformEngine
+2025/04/15 21:52:22.695984 [INFO] reading event message file
+2025/04/15 21:52:22.705213 [INFO] Engine received EB command cfn-hup-exec
+
+2025/04/15 21:52:22.876170 [INFO] Running command: /opt/aws/bin/cfn-get-metadata -s arn:aws:cloudformation:us-east-2:774305616102:stack/awseb-e-d8sgeytsv5-stack/2ae6ae10-1a42-11f0-a24a-0a46e31a5a79 -r AWSEBAutoScalingGroup --region us-east-2
+2025/04/15 21:52:23.486539 [INFO] Running command: /opt/aws/bin/cfn-get-metadata -s arn:aws:cloudformation:us-east-2:774305616102:stack/awseb-e-d8sgeytsv5-stack/2ae6ae10-1a42-11f0-a24a-0a46e31a5a79 -r AWSEBBeanstalkMetadata --region us-east-2
+2025/04/15 21:52:23.794272 [INFO] checking whether command tail-log is applicable to this instance...
+2025/04/15 21:52:23.794292 [INFO] this command is applicable to the instance, thus instance should execute command
+2025/04/15 21:52:23.794296 [INFO] Engine command: (tail-log)
+
+2025/04/15 21:52:23.795525 [INFO] Executing instruction: GetTailLogs
+2025/04/15 21:52:23.795535 [INFO] Tail Logs...
+2025/04/15 21:52:23.799245 [INFO] Running command: tail -n 100 /var/log/web.stdout.log
+2025/04/15 21:52:23.801782 [INFO] Running command: tail -n 100 /var/log/eb-engine.log
+
+
+----------------------------------------
+/var/log/eb-hooks.log
+----------------------------------------
+
+
+----------------------------------------
+/var/log/aws-sqsd/default.log
+----------------------------------------
+2025-04-15T21:52:08Z pollers: daemon exception during polling message from sqs: The specified queue does not exist for this wsdl version.
+2025-04-15T21:52:09Z pollers: daemon exception during polling message from sqs: The specified queue does not exist for this wsdl version.
+2025-04-15T21:52:09Z pollers: daemon exception during polling message from sqs: The specified queue does not exist for this wsdl version.
+2025-04-15T21:52:09Z pollers: daemon exception during polling message from sqs: The specified queue does not exist for this wsdl version.
+2025-04-15T21:52:09Z pollers: daemon exception during polling message from sqs: The specified queue does not exist for this wsdl version.
+2025-04-15T21:52:09Z pollers: daemon exception during polling message from sqs: The specified queue does not exist for this wsdl version.
+2025-04-15T21:52:09Z pollers: daemon exception during polling message from sqs: The specified queue does not exist for this wsdl version.
+2025-04-15T21:52:09Z pollers: daemon exception during polling message from sqs: The specified queue does not exist for this wsdl version.
+2025-04-15T21:52:10Z pollers: daemon exception during polling message from sqs: The specified queue does not exist for this wsdl version.
+2025-04-15T21:52:10Z pollers: daemon exception during polling message from sqs: The specified queue does not exist for this wsdl version.
+2025-04-15T21:52:10Z pollers: daemon exception during polling message from sqs: The specified queue does not exist for this wsdl version.
+2025-04-15T21:52:10Z pollers: daemon exception during polling message from sqs: The specified queue does not exist for this wsdl version.
+2025-04-15T21:52:10Z pollers: daemon exception during polling message from sqs: The specified queue does not exist for this wsdl version.
+2025-04-15T21:52:10Z pollers: daemon exception during polling message from sqs: The specified queue does not exist for this wsdl version.
+2025-04-15T21:52:11Z pollers: daemon exception during polling message from sqs: The specified queue does not exist for this wsdl version.
+2025-04-15T21:52:11Z pollers: daemon exception during polling message from sqs: The specified queue does not exist for this wsdl version.
+2025-04-15T21:52:11Z pollers: daemon exception during polling message from sqs: The specified queue does not exist for this wsdl version.
+2025-04-15T21:52:11Z pollers: daemon exception during polling message from sqs: The specified queue does not exist for this wsdl version.
+2025-04-15T21:52:11Z pollers: daemon exception during polling message from sqs: The specified queue does not exist for this wsdl version.
+2025-04-15T21:52:11Z pollers: daemon exception during polling message from sqs: The specified queue does not exist for this wsdl version.
+2025-04-15T21:52:11Z pollers: daemon exception during polling message from sqs: The specified queue does not exist for this wsdl version.
+2025-04-15T21:52:12Z pollers: daemon exception during polling message from sqs: The specified queue does not exist for this wsdl version.
+2025-04-15T21:52:12Z pollers: daemon exception during polling message from sqs: The specified queue does not exist for this wsdl version.
+2025-04-15T21:52:12Z pollers: daemon exception during polling message from sqs: The specified queue does not exist for this wsdl version.
+2025-04-15T21:52:12Z pollers: daemon exception during polling message from sqs: The specified queue does not exist for this wsdl version.
+2025-04-15T21:52:12Z pollers: daemon exception during polling message from sqs: The specified queue does not exist for this wsdl version.
+2025-04-15T21:52:12Z pollers: daemon exception during polling message from sqs: The specified queue does not exist for this wsdl version.
+2025-04-15T21:52:12Z pollers: daemon exception during polling message from sqs: The specified queue does not exist for this wsdl version.
+2025-04-15T21:52:13Z pollers: daemon exception during polling message from sqs: The specified queue does not exist for this wsdl version.
+2025-04-15T21:52:13Z pollers: daemon exception during polling message from sqs: The specified queue does not exist for this wsdl version.
+2025-04-15T21:52:13Z pollers: daemon exception during polling message from sqs: The specified queue does not exist for this wsdl version.
+2025-04-15T21:52:13Z pollers: daemon exception during polling message from sqs: The specified queue does not exist for this wsdl version.
+2025-04-15T21:52:13Z pollers: daemon exception during polling message from sqs: The specified queue does not exist for this wsdl version.
+2025-04-15T21:52:13Z pollers: daemon exception during polling message from sqs: The specified queue does not exist for this wsdl version.
+2025-04-15T21:52:14Z pollers: daemon exception during polling message from sqs: The specified queue does not exist for this wsdl version.
+2025-04-15T21:52:14Z pollers: daemon exception during polling message from sqs: The specified queue does not exist for this wsdl version.
+2025-04-15T21:52:14Z pollers: daemon exception during polling message from sqs: The specified queue does not exist for this wsdl version.
+2025-04-15T21:52:14Z pollers: daemon exception during polling message from sqs: The specified queue does not exist for this wsdl version.
+2025-04-15T21:52:14Z pollers: daemon exception during polling message from sqs: The specified queue does not exist for this wsdl version.
+2025-04-15T21:52:14Z pollers: daemon exception during polling message from sqs: The specified queue does not exist for this wsdl version.
+2025-04-15T21:52:14Z pollers: daemon exception during polling message from sqs: The specified queue does not exist for this wsdl version.
+2025-04-15T21:52:15Z pollers: daemon exception during polling message from sqs: The specified queue does not exist for this wsdl version.
+2025-04-15T21:52:15Z pollers: daemon exception during polling message from sqs: The specified queue does not exist for this wsdl version.
+2025-04-15T21:52:15Z pollers: daemon exception during polling message from sqs: The specified queue does not exist for this wsdl version.
+2025-04-15T21:52:15Z pollers: daemon exception during polling message from sqs: The specified queue does not exist for this wsdl version.
+2025-04-15T21:52:15Z pollers: daemon exception during polling message from sqs: The specified queue does not exist for this wsdl version.
+2025-04-15T21:52:15Z pollers: daemon exception during polling message from sqs: The specified queue does not exist for this wsdl version.
+2025-04-15T21:52:15Z pollers: daemon exception during polling message from sqs: The specified queue does not exist for this wsdl version.
+2025-04-15T21:52:16Z pollers: daemon exception during polling message from sqs: The specified queue does not exist for this wsdl version.
+2025-04-15T21:52:16Z pollers: daemon exception during polling message from sqs: The specified queue does not exist for this wsdl version.
+2025-04-15T21:52:16Z pollers: daemon exception during polling message from sqs: The specified queue does not exist for this wsdl version.
+2025-04-15T21:52:16Z pollers: daemon exception during polling message from sqs: The specified queue does not exist for this wsdl version.
+2025-04-15T21:52:16Z pollers: daemon exception during polling message from sqs: The specified queue does not exist for this wsdl version.
+2025-04-15T21:52:16Z pollers: daemon exception during polling message from sqs: The specified queue does not exist for this wsdl version.
+2025-04-15T21:52:17Z pollers: daemon exception during polling message from sqs: The specified queue does not exist for this wsdl version.
+2025-04-15T21:52:17Z pollers: daemon exception during polling message from sqs: The specified queue does not exist for this wsdl version.
+2025-04-15T21:52:17Z pollers: daemon exception during polling message from sqs: The specified queue does not exist for this wsdl version.
+2025-04-15T21:52:17Z pollers: daemon exception during polling message from sqs: The specified queue does not exist for this wsdl version.
+2025-04-15T21:52:17Z pollers: daemon exception during polling message from sqs: The specified queue does not exist for this wsdl version.
+2025-04-15T21:52:17Z pollers: daemon exception during polling message from sqs: The specified queue does not exist for this wsdl version.
+2025-04-15T21:52:17Z pollers: daemon exception during polling message from sqs: The specified queue does not exist for this wsdl version.
+2025-04-15T21:52:18Z pollers: daemon exception during polling message from sqs: The specified queue does not exist for this wsdl version.
+2025-04-15T21:52:18Z pollers: daemon exception during polling message from sqs: The specified queue does not exist for this wsdl version.
+2025-04-15T21:52:18Z pollers: daemon exception during polling message from sqs: The specified queue does not exist for this wsdl version.
+2025-04-15T21:52:18Z pollers: daemon exception during polling message from sqs: The specified queue does not exist for this wsdl version.
+2025-04-15T21:52:18Z pollers: daemon exception during polling message from sqs: The specified queue does not exist for this wsdl version.
+2025-04-15T21:52:18Z pollers: daemon exception during polling message from sqs: The specified queue does not exist for this wsdl version.
+2025-04-15T21:52:18Z pollers: daemon exception during polling message from sqs: The specified queue does not exist for this wsdl version.
+2025-04-15T21:52:19Z pollers: daemon exception during polling message from sqs: The specified queue does not exist for this wsdl version.
+2025-04-15T21:52:19Z pollers: daemon exception during polling message from sqs: The specified queue does not exist for this wsdl version.
+2025-04-15T21:52:19Z pollers: daemon exception during polling message from sqs: The specified queue does not exist for this wsdl version.
+2025-04-15T21:52:19Z pollers: daemon exception during polling message from sqs: The specified queue does not exist for this wsdl version.
+2025-04-15T21:52:19Z pollers: daemon exception during polling message from sqs: The specified queue does not exist for this wsdl version.
+2025-04-15T21:52:19Z pollers: daemon exception during polling message from sqs: The specified queue does not exist for this wsdl version.
+2025-04-15T21:52:20Z pollers: daemon exception during polling message from sqs: The specified queue does not exist for this wsdl version.
+2025-04-15T21:52:20Z pollers: daemon exception during polling message from sqs: The specified queue does not exist for this wsdl version.
+2025-04-15T21:52:20Z pollers: daemon exception during polling message from sqs: The specified queue does not exist for this wsdl version.
+2025-04-15T21:52:20Z pollers: daemon exception during polling message from sqs: The specified queue does not exist for this wsdl version.
+2025-04-15T21:52:20Z pollers: daemon exception during polling message from sqs: The specified queue does not exist for this wsdl version.
+2025-04-15T21:52:20Z pollers: daemon exception during polling message from sqs: The specified queue does not exist for this wsdl version.
+2025-04-15T21:52:20Z pollers: daemon exception during polling message from sqs: The specified queue does not exist for this wsdl version.
+2025-04-15T21:52:21Z pollers: daemon exception during polling message from sqs: The specified queue does not exist for this wsdl version.
+2025-04-15T21:52:21Z pollers: daemon exception during polling message from sqs: The specified queue does not exist for this wsdl version.
+2025-04-15T21:52:21Z pollers: daemon exception during polling message from sqs: The specified queue does not exist for this wsdl version.
+2025-04-15T21:52:21Z pollers: daemon exception during polling message from sqs: The specified queue does not exist for this wsdl version.
+2025-04-15T21:52:21Z pollers: daemon exception during polling message from sqs: The specified queue does not exist for this wsdl version.
+2025-04-15T21:52:21Z pollers: daemon exception during polling message from sqs: The specified queue does not exist for this wsdl version.
+2025-04-15T21:52:22Z pollers: daemon exception during polling message from sqs: The specified queue does not exist for this wsdl version.
+2025-04-15T21:52:22Z pollers: daemon exception during polling message from sqs: The specified queue does not exist for this wsdl version.
+2025-04-15T21:52:22Z pollers: daemon exception during polling message from sqs: The specified queue does not exist for this wsdl version.
+2025-04-15T21:52:22Z pollers: daemon exception during polling message from sqs: The specified queue does not exist for this wsdl version.
+2025-04-15T21:52:22Z pollers: daemon exception during polling message from sqs: The specified queue does not exist for this wsdl version.
+2025-04-15T21:52:22Z pollers: daemon exception during polling message from sqs: The specified queue does not exist for this wsdl version.
+2025-04-15T21:52:22Z pollers: daemon exception during polling message from sqs: The specified queue does not exist for this wsdl version.
+2025-04-15T21:52:23Z pollers: daemon exception during polling message from sqs: The specified queue does not exist for this wsdl version.
+2025-04-15T21:52:23Z pollers: daemon exception during polling message from sqs: The specified queue does not exist for this wsdl version.
+2025-04-15T21:52:23Z pollers: daemon exception during polling message from sqs: The specified queue does not exist for this wsdl version.
+2025-04-15T21:52:23Z pollers: daemon exception during polling message from sqs: The specified queue does not exist for this wsdl version.
+2025-04-15T21:52:23Z pollers: daemon exception during polling message from sqs: The specified queue does not exist for this wsdl version.
+2025-04-15T21:52:23Z pollers: daemon exception during polling message from sqs: The specified queue does not exist for this wsdl version.
+
+
+----------------------------------------
+/var/log/nginx/access.log
+----------------------------------------
+127.0.0.1 - - [15/Apr/2025:21:41:27 +0000] "POST / HTTP/1.1" 200 0 "-" "aws-sqsd/3.0.4" "-"
+127.0.0.1 - - [15/Apr/2025:21:42:00 +0000] "POST /scheduled HTTP/1.1" 200 0 "-" "aws-sqsd/3.0.4" "-"
+127.0.0.1 - - [15/Apr/2025:21:43:00 +0000] "POST /scheduled HTTP/1.1" 200 0 "-" "aws-sqsd/3.0.4" "-"
+127.0.0.1 - - [15/Apr/2025:21:46:37 +0000] "POST / HTTP/1.1" 502 150 "-" "aws-sqsd/3.0.4" "-"
+
+
+----------------------------------------
+/var/log/nginx/error.log
+----------------------------------------
+2025/04/15 21:41:19 [warn] 2240#2240: could not build optimal types_hash, you should increase either types_hash_max_size: 1024 or types_hash_bucket_size: 64; ignoring types_hash_bucket_size
+2025/04/15 21:41:19 [warn] 2274#2274: could not build optimal types_hash, you should increase either types_hash_max_size: 1024 or types_hash_bucket_size: 64; ignoring types_hash_bucket_size
+2025/04/15 21:41:19 [warn] 2275#2275: could not build optimal types_hash, you should increase either types_hash_max_size: 1024 or types_hash_bucket_size: 64; ignoring types_hash_bucket_size
+2025/04/15 21:46:37 [error] 3260#3260: *4 connect() failed (111: Connection refused) while connecting to upstream, client: 127.0.0.1, server: , request: "POST / HTTP/1.1", upstream: "http://127.0.0.1:8000/", host: "localhost"
+
+
+----------------------------------------
+/tmp/sample-app.log
+----------------------------------------
+2025-04-15 21:41:27,853 - application - INFO - Received a message.
+2025-04-15 21:42:00,125 - application - INFO - Received task task1 scheduled at 2025-04-15T21:42:00Z
+2025-04-15 21:43:00,091 - application - INFO - Received task task1 scheduled at 2025-04-15T21:43:00Z
+
+

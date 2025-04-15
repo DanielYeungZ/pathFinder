@@ -23,14 +23,14 @@ def make_celery(app):
         "visibility_timeout": 3600,
         "polling_interval": 1,
         "predefined_queues": {
-            "awseb-e-gtshh7qwcu-stack-AWSEBWorkerQueue-oshBAqIyywHJ": {
-                "url": "https://sqs.us-east-2.amazonaws.com/774305616102/awseb-e-gtshh7qwcu-stack-AWSEBWorkerQueue-oshBAqIyywHJ"
+            "awseb-e-snhqgukvsc-stack-AWSEBWorkerQueue-7beyiLXX2yLZ": {
+                "url": "https://sqs.us-east-2.amazonaws.com/774305616102/awseb-e-snhqgukvsc-stack-AWSEBWorkerQueue-7beyiLXX2yLZ"
             }
         },
     }
 
     celery.conf.task_default_queue = (
-        "awseb-e-gtshh7qwcu-stack-AWSEBWorkerQueue-oshBAqIyywHJ"
+        "awseb-e-snhqgukvsc-stack-AWSEBWorkerQueue-7beyiLXX2yLZ"
     )
 
     # Add more logging
@@ -40,8 +40,8 @@ def make_celery(app):
     celery.conf.worker_task_log_format = (
         "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
     )
-    celery.conf.worker_redirect_stdouts = True
-    celery.conf.worker_redirect_stdouts_level = "DEBUG"
+    # celery.conf.worker_redirect_stdouts = True
+    # celery.conf.worker_redirect_stdouts_level = "DEBUG"
 
     logging.basicConfig(level=logging.INFO)
 
@@ -80,5 +80,3 @@ def create_app():
 
 app = create_app()
 celery = make_celery(app)
-
-from routes.imageRoute import process_image
