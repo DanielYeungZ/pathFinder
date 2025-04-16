@@ -312,6 +312,13 @@ def calculate_path(current_user):
                 ),
                 200,
             )
+        elif not path_doc:
+            path_doc = Path(
+                start=start_point,
+                end=end_point,
+                image=image_doc,
+            )
+            path_doc.save()
     except Exception as e:
         return jsonify({"image query error": str(e)}), 500
 
@@ -364,7 +371,8 @@ def calculate_path(current_user):
     # Save to memory
     _, img_encoded = cv2.imencode(".jpg", path_image)
     img_buffer = BytesIO(img_encoded.tobytes())
-    output_s3_key = f"processed_images/path_result.jpg"
+
+    output_s3_key = f"processed_images/{path_doc}.jpg"
     path_logs(f"calculate_path=====> Uploading path image to S3: {output_s3_key}")
 
     # Upload result back to S3
@@ -375,13 +383,10 @@ def calculate_path(current_user):
     path_logs(f"calculate_path=====> Uploaded path image to S3: {output_s3_url}")
 
     if output_s3_url:
-        path_doc = Path(
-            start=start_point,
-            end=end_point,
-            url=output_s3_url,
-            image=image_doc,
+        path_doc.update(
+            set__url=output_s3_url,
+            set__updatedAt=datetime.now(timezone.utc),
         )
-        path_doc.save()
 
     return (
         jsonify(

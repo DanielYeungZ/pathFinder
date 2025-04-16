@@ -27,6 +27,7 @@ class Image(Document):
     imageHeight = IntField(default=None, required=False)
     image_binary = BinaryField(required=False)
     image_shape = ListField(IntField(), required=False)
+
     createdAt = DateTimeField(default=lambda: datetime.now(timezone.utc))
     updatedAt = DateTimeField(default=lambda: datetime.now(timezone.utc))
     binary_image = ListField()
