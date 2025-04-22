@@ -44,7 +44,7 @@ Follow these steps to set up the project:
    eb logs
    ```
 
-7. **deploymenty command**:
+7. **deployment command**:
    ```bash
 
    gcloud run deploy flask-api \
