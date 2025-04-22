@@ -88,6 +88,15 @@ class ImageRoutesTestCase(unittest.TestCase):
             imageHeight=768,
         ).save()
 
+        self.test_real_image = Image(
+            building=self.test_building,
+            type="processed",
+            url=f"https://{S3_BUCKET}.s3.amazonaws.com/images/ENG_Floor1_4.jpg",
+            floor=2,
+            imageWidth=1024,
+            imageHeight=768,
+        ).save()
+
         self.test_anchor1 = Anchor(image=self.test_image, x=10, y=20).save()
         self.test_anchor2 = Anchor(image=self.test_image, x=30, y=40).save()
 
@@ -292,9 +301,9 @@ class ImageRoutesTestCase(unittest.TestCase):
         Anchor.objects(id=anchor1.id).delete()
 
     def test_calculate_path_success(self):
-
+        image = Image.objects(id=self.test_real_image.id).first()
         data = {
-            "s3_image_url": f"https://{S3_BUCKET}.s3.amazonaws.com/images/ENG_Floor1_4.jpg",
+            "image_id": f"{image.id}",
             "start_point": [0, 0],
             "end_point": [0, 1],
         }
@@ -309,8 +318,9 @@ class ImageRoutesTestCase(unittest.TestCase):
 
     # @unittest.skip("Skipping test_real_calculate_path_success")
     def test_real_local_calculate_path_success(self):
+        image = Image.objects(id=self.test_real_image.id).first()
         data = {
-            "s3_image_url": f"https://{S3_BUCKET}.s3.amazonaws.com/images/ENG_Floor1_4.jpg",
+            "image_id": f"{image.id}",
             "start_point": [0, 0],
             "end_point": [0, 1],
         }
@@ -326,8 +336,9 @@ class ImageRoutesTestCase(unittest.TestCase):
 
     @unittest.skip("Skipping test_real_calculate_path_success")
     def test_real_calculate_path_success(self):
+        image = Image.objects(id=self.test_real_image.id).first()
         data = {
-            "s3_image_url": f"https://{S3_BUCKET}.s3.amazonaws.com/images/ENG_Floor1_4.jpg",
+            "image_id": f"{image.id}",
             "start_point": [0, 0],
             "end_point": [0, 1],
         }
