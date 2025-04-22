@@ -28,6 +28,7 @@ from config import (
 from services.roboflow import analysis, saveData
 from factory import celery
 from datetime import datetime, timezone
+from uuid import uuid4
 import logging
 
 logger = logging.getLogger(__name__)
@@ -372,7 +373,8 @@ def calculate_path(current_user):
     _, img_encoded = cv2.imencode(".jpg", path_image)
     img_buffer = BytesIO(img_encoded.tobytes())
 
-    output_s3_key = f"processed_images/{path_doc}.jpg"
+    unique_id = str(uuid4())
+    output_s3_key = f"processed_images/{unique_id}.jpg"
     path_logs(f"calculate_path=====> Uploading path image to S3: {output_s3_key}")
 
     # Upload result back to S3
