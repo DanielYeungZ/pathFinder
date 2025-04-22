@@ -208,7 +208,7 @@ def upload_image(current_user):
     file_content = file.read()
     logs(f"File content size: {len(file_content)} bytes")
     # Upload to S3
-    s3_key = f"images/{str(current_user.id)}_{file.filename}"
+    s3_key = f"images/{str(current_user.id)}_{file.filename}_{ str(uuid4())}.jpg"
     with concurrent.futures.ThreadPoolExecutor() as executor:
         future_s3 = executor.submit(upload_to_s3, BytesIO(file_content), s3_key)
         future_roboflow = executor.submit(run_roboflow_analysis, file_content)
