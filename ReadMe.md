@@ -46,64 +46,16 @@ Follow these steps to set up the project:
 
 7. **deploymenty command**:
    ```bash
-   eb init -p python-3.11 flask-api
-   eb create flask-api-env
 
-   mv Procfile.api Procfile
-   eb deploy flask-api-env --staged
-   mv Procfile Procfile.api
-   
-   eb init -p python-3.11 flask-celery-worker
+   gcloud run deploy flask-api \
+  --source . \
+  --region us-central1 \
+  --platform managed \
+  --allow-unauthenticated \
+  --timeout 3600
 
-   eb create celery-worker-env --tier worker
-
-   mv Procfile.worker Procfile
-   rm -rf .ebextensions
-   cp -r .ebextensions-worker .ebextensions
-
-   eb deploy celery-worker-env --staged
-
-   # Restore
-   mv Procfile Procfile.worker
-   rm -rf .ebextensions
+  gcloud config list
    ```
-
-   ```
-   eb init -p python-3.11 flask-api
-   mv Procfile.api Procfile
-   git add -A
-   eb deploy flask-api-env --staged
-   mv Procfile Procfile.api
-   git add -A
-
-   # Celery Worker
-   eb init -p python-3.11 flask-celery-worker
-     eb init -p python-3.11 flask-celery-worker-prod
-   mv Procfile.worker Procfile
-   rm -rf .ebextensions && cp -r .ebextensions-worker .ebextensions
-   git add -A
-   eb deploy celery-worker-env --staged
-   mv Procfile Procfile.worker && rm -rf .ebextensions
-   git add -A
-   ```
-   ```
-   git add -A
-   eb deploy --staged
-
-
-  eb init -p python-3.11 flask-api-prod
-   mv Procfile.api Procfile
-   git add -A
-   eb deploy Flask-api-prod-env --staged
-   mv Procfile Procfile.api
-   git add -A
-
-   ```
-
-   worker: celery -A factory.celery worker --loglevel=info
-   web: gunicorn main:app --timeout 3000
-   pip freeze > requirements.txt
-   eb logs > worker_logs.txt    
 ## Project Structure
 
 ```bash
