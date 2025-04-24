@@ -55,6 +55,16 @@ Follow these steps to set up the project:
   --timeout 3600
 
   gcloud config list
+
+  gcloud builds submit --tag gcr.io/pathfinder-456923/flask-api
+   gcloud run deploy flask-api \
+  --image gcr.io/pathfinder-456923/flask-api \
+  --region us-central1 \
+  --platform managed \
+  --allow-unauthenticated \
+  --memory 16Gi \
+  --cpu 4 \
+  --timeout 3600
    ```
 ## Project Structure
 
