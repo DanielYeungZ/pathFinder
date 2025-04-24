@@ -270,20 +270,20 @@ def calculate_path(current_user):
 
     if (
         not data
-        or "s3_image_url" not in data
+        or "image_id" not in data
         or "start_point" not in data
         or "end_point" not in data
     ):
         return jsonify({"error": "Missing required parameters"}), 400
 
-    s3_image_url = data.get("s3_image_url")
+    image_id = data.get("image_id")
     start_point = tuple(data.get("start_point"))
     end_point = tuple(data.get("end_point"))
 
     if not start_point or not end_point:
         return jsonify({"error": "Start and end points are required"}), 400
 
-    if not s3_image_url or not start_point or not end_point:
+    if not image_id or not start_point or not end_point:
         return jsonify({"error": "Missing required parameters"}), 400
 
     path_logs(
@@ -292,7 +292,7 @@ def calculate_path(current_user):
 
     try:
 
-        image_doc = Image.objects(url=s3_image_url).first()
+        image_doc = Image.objects(id=image_id).first()
         if not image_doc:
             return jsonify({"error": "Image not found"}), 404
 
@@ -325,9 +325,9 @@ def calculate_path(current_user):
 
     # Download image from S3
     try:
-        path_logs(f"calculate_path=====> Downloading image from S3: {s3_image_url}")
+        path_logs(f"calculate_path=====> Downloading image from S3: {image_doc.url}")
 
-        s3_key = s3_image_url.split(f"https://{S3_BUCKET}.s3.amazonaws.com/")[-1]
+        s3_key = image_doc.url.split(f"https://{S3_BUCKET}.s3.amazonaws.com/")[-1]
         image_stream = BytesIO()
         s3_client.download_fileobj(S3_BUCKET, s3_key, image_stream)
         if image_stream.getbuffer().nbytes == 0:
@@ -407,27 +407,27 @@ def calculate_path_v2(current_user):
     data = request.get_json()
 
     if not all(
-        [data, "s3_image_url" in data, "start_point" in data, "end_point" in data]
+        [data, "image_id" in data, "start_point" in data, "end_point" in data]
     ):
         return jsonify({"error": "Missing required parameters"}), 400
 
-    s3_image_url = data.get("s3_image_url")
+    image_id = data.get("image_id")
     start_point = tuple(data.get("start_point"))
     end_point = tuple(data.get("end_point"))
 
     if not start_point or not end_point:
         return jsonify({"error": "Start and end points are required"}), 400
 
-    if not s3_image_url or not start_point or not end_point:
+    if not image_id or not start_point or not end_point:
         return jsonify({"error": "Missing required parameters"}), 400
 
     path_logs(
-        f"calculate_path=====> Start point: {start_point}, End point: {end_point}, image: {s3_image_url}"
+        f"calculate_path=====> Start point: {start_point}, End point: {end_point}, image: {image_id}"
     )
 
     try:
 
-        image_doc = Image.objects(url=s3_image_url).first()
+        image_doc = Image.objects(id=image_id).first()
         if not image_doc:
             return jsonify({"error": "Image not found"}), 404
 
@@ -461,13 +461,13 @@ def calculate_path_v2(current_user):
 
             path_logs(
                 f"process_image new=====> Path doc ID: {str(path_doc.id)}, "
-                f"S3 Image URL: {s3_image_url}, "
+                f"S3 Image URL: {image_doc.url}, "
                 f"Start Point: {start_point}, "
                 f"End Point: {end_point}"
             )
 
             path_dict = path_doc.to_dict()
-            task = process_image.delay(path_dict, s3_image_url, start_point, end_point)
+            task = process_image.delay(path_dict, image_doc.url, start_point, end_point)
             path_logs(f"task=====> {task}")
             return (
                 jsonify(
