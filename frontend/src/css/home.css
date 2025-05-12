@@ -1,0 +1,19 @@
+div {
+    text-align: center;
+}
+
+.upload {
+    background-color: #38BB4C;
+}
+
+.login {
+    background-color: #88E168;
+}
+
+.register {
+    background-color: #A9FFC0;
+}
+
+.savedmaps {
+    background-color: #C05EE0;
+}

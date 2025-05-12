@@ -1,0 +1,21 @@
+.mapBox {
+    text-align:"center";
+    margin: 0 auto;
+    border:1px solid black;
+}
+
+.setter {
+    background-color: #5E74E0;
+}
+
+.path {
+    background-color: #00A13E;
+}
+
+.reset {
+    background-color: #EC7433;
+}
+
+.saved {
+    background-color: #C05EE0;
+}

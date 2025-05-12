@@ -1,0 +1,16 @@
+.box {
+    border:1px solid black;
+    width:200px;
+    height:200px;
+    float:left;
+    margin:10px;
+    position: relative;
+}
+
+.delete {
+    background-color:red;
+    color:white;
+    position: absolute;
+    bottom: 5px;
+    right: 5px;
+}
